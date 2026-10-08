@@ -1,0 +1,10 @@
+{
+  "name": "FARM - Crop Disease & Pest Health Diagnostic AI",
+  "description": "Precision agricultural diagnostic tool for farmers to detect crop diseases, pest infestations, and leaf damage with treatment protocols and health recovery plans.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
