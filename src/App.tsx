@@ -135,65 +135,7 @@ export default function App() {
 
       const ai = new GoogleGenAI({ apiKey });
 
-      const promptText = `
-        Analyze this crop leaf image. 
-        Crop hint provided by user: ${cropHint || 'None'}. 
-        Field notes provided by user: ${notes || 'None'}.
-        
-        Identify the specific disease, pest, or nutrient deficiency and provide a comprehensive treatment protocol.
-        You MUST return the response ONLY as a valid JSON object matching this exact TypeScript interface structure:
-        
-        {
-          "id": "unique-string-identifier",
-          "cropName": "Name of the crop",
-          "diagnosisName": "Name of the disease or issue",
-          "scientificPathogen": "Scientific name of pathogen",
-          "severityLevel": "Low" | "Medium" | "High" | "Severe" | "Critical",
-          "healthScore": 0-100,
-          "confidenceScore": 0-100,
-          "issueType": "Fungal" | "Bacterial" | "Viral" | "Pest" | "Nutrient Deficiency" | "Healthy Crop",
-          "farmerVernacularSummary": "A clear, simple explanation for the farmer in English",
-          "affectedAreaPercentage": 0-100,
-          "visualSymptoms": ["symptom 1", "symptom 2"],
-          "damageAnalysis": {
-            "leafDamageDescription": "description",
-            "vulnerableParts": ["leaves", "stems"],
-            "spreadRate": "description of how fast it spreads",
-            "potentialYieldLossPercent": 0-100
-          },
-          "treatmentPlan": {
-            "immediateSteps": ["step 1", "step 2"],
-            "chemicalSolutions": [
-              {
-                "activeIngredient": "ingredient",
-                "commercialNames": "example brand names",
-                "dosagePerLiter": "dosage amount",
-                "recommendedDilution": "dilution ratio",
-                "safetyWaitingPeriodDays": 7
-              }
-            ],
-            "organicSolutions": [
-              {
-                "name": "solution name",
-                "preparation": "how to prepare",
-                "applicationRate": "rate of application",
-                "frequency": "how often"
-              }
-            ],
-            "preventativeMeasures": ["measure 1", "measure 2"],
-            "sprayingGuidelines": {
-              "bestTiming": "optimal time of day",
-              "weatherPrecautions": "weather conditions to avoid",
-              "ppeRequired": ["item 1", "item 2"]
-            }
-          },
-          "recoveryTimeline": [
-            { "day": 1, "expectedMilestone": "milestone description", "actionRequired": "action to take" }
-          ]
-        }
-        
-        Return ONLY raw JSON. Do not wrap it in markdown block quotes.
-      `;
+      const promptText = `Analyze this crop leaf image. Crop hint provided by user: ${cropHint || 'None'}. Field notes provided by user: ${notes || 'None'}. Identify the specific disease, pest, or nutrient deficiency and provide a comprehensive treatment protocol. You MUST return the response ONLY as a valid JSON object matching this exact TypeScript interface structure: {"id": "unique-string-identifier", "cropName": "Name of the crop", "diagnosisName": "Name of the disease or issue", "scientificPathogen": "Scientific name of pathogen", "severityLevel": "Low", "healthScore": 85, "confidenceScore": 90, "issueType": "Fungal", "farmerVernacularSummary": "A clear explanation", "affectedAreaPercentage": 10, "visualSymptoms": ["symptom 1"], "damageAnalysis": {"leafDamageDescription": "desc", "vulnerableParts": ["leaves"], "spreadRate": "slow", "potentialYieldLossPercent": 5}, "treatmentPlan": {"immediateSteps": ["step 1"], "chemicalSolutions": [{"activeIngredient": "ing", "commercialNames": "brand", "dosagePerLiter": "2g", "recommendedDilution": "1L", "safetyWaitingPeriodDays": 7}], "organicSolutions": [{"name": "org", "preparation": "prep", "applicationRate": "rate", "frequency": "freq"}], "preventativeMeasures": ["measure 1"], "sprayingGuidelines": {"bestTiming": "morning", "weatherPrecautions": "none", "ppeRequired": ["gloves"]}}, "recoveryTimeline": [{"day": 1, "expectedMilestone": "milestone", "actionRequired": "action"}]} Return ONLY raw JSON.`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
