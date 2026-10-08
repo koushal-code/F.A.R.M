@@ -16,16 +16,19 @@ jobs:
             with:
               channel: 'stable'
 
-          - name: Scaffold missing Android architecture
-            run: flutter create . --platforms=android
+          - name: Wipe legacy Android folder and rebuild
+            run: |
+              rm -rf android/
+              flutter create . --platforms=android
 
-          - name: Prevent TFLite compression (Kotlin DSL)
+          - name: Inject Kotlin DSL Config (TFLite & MinSDK 24)
             run: |
               python -c '
               import os
               file = "android/app/build.gradle.kts"
               if os.path.exists(file):
                   with open(file, "r") as f: data = f.read()
+                  data = data.replace("flutter.minSdkVersion", "24")
                   data = data.replace("defaultConfig {", "androidResources { noCompress += \"tflite\"; noCompress += \"json\" }\n\n    defaultConfig {")
                   with open(file, "w") as f: f.write(data)
               '
