@@ -1,9 +1,11 @@
+```tsx
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { AndroidTopBar } from './components/AndroidTopBar';
 import { AndroidNavBar } from './components/AndroidNavBar';
 import { ScannerHero } from './components/ScannerHero';
@@ -39,7 +41,6 @@ export default function App() {
   const [isFlutterModalOpen, setIsFlutterModalOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
 
-  // Restore saved language, contrast, and history
   useEffect(() => {
     const savedLang = localStorage.getItem(STORAGE_KEY_LANG) as SupportedLanguage;
     if (savedLang) {
@@ -65,7 +66,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY_LANG, lang);
     setSamples(getLocalizedSamples(lang));
 
-    // If a demo sample is currently selected or diagnosed, re-fetch its localized diagnosis
     if (selectedSample) {
       const updatedSample = getLocalizedSamples(lang).find(s => s.id === selectedSample.id);
       if (updatedSample) {
@@ -110,35 +110,109 @@ export default function App() {
     setErrorMessage(null);
 
     try {
-      const storedCustomKey = localStorage.getItem('farm_custom_api_key');
-      const payload: any = {
-        sampleId: sampleId || (selectedSample ? selectedSample.id : undefined),
-        cropHint: cropHint || '',
-        additionalNotes: notes || '',
-        lang: langToUse,
-        customApiKey: storedCustomKey || undefined
-      };
-
-      if (base64 || customImageBase64) {
-        payload.imageBase64 = base64 || customImageBase64;
-        payload.mimeType = customFile ? customFile.type : 'image/jpeg';
+      const targetBase64 = base64 || customImageBase64;
+      
+      if (!targetBase64 && !selectedSample) {
+        throw new Error("No image data available for analysis. Please capture a new image.");
       }
 
-      const res = await fetch('/api/diagnose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      let base64Data = '';
+      let mimeType = 'image/jpeg';
+
+      if (targetBase64) {
+        base64Data = targetBase64.includes(',') ? targetBase64.split(',')[1] : targetBase64;
+        mimeType = customFile ? customFile.type : 'image/jpeg';
+      } else if (selectedSample && selectedSample.thumbnail.startsWith('data:')) {
+        base64Data = selectedSample.thumbnail.split(',')[1];
+      } else {
+        throw new Error("Remote sample images must be converted to base64 or you must upload a new photo.");
+      }
+
+      const apiKey = localStorage.getItem('farm_custom_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("Gemini API key is missing. Please configure it in the AI Engine settings.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+
+      const promptText = `
+        Analyze this crop leaf image. 
+        Crop hint provided by user: ${cropHint || 'None'}. 
+        Field notes provided by user: ${notes || 'None'}.
+        
+        Identify the specific disease, pest, or nutrient deficiency and provide a comprehensive treatment protocol.
+        You MUST return the response ONLY as a valid JSON object matching this exact TypeScript interface structure:
+        
+        {
+          "id": "unique-string-identifier",
+          "cropName": "Name of the crop",
+          "diagnosisName": "Name of the disease or issue",
+          "scientificPathogen": "Scientific name of pathogen",
+          "severityLevel": "Low" | "Medium" | "High" | "Severe" | "Critical",
+          "healthScore": 0-100,
+          "confidenceScore": 0-100,
+          "issueType": "Fungal" | "Bacterial" | "Viral" | "Pest" | "Nutrient Deficiency" | "Healthy Crop",
+          "farmerVernacularSummary": "A clear, simple explanation for the farmer in English",
+          "affectedAreaPercentage": 0-100,
+          "visualSymptoms": ["symptom 1", "symptom 2"],
+          "damageAnalysis": {
+            "leafDamageDescription": "description",
+            "vulnerableParts": ["leaves", "stems", etc],
+            "spreadRate": "description of how fast it spreads",
+            "potentialYieldLossPercent": 0-100
+          },
+          "treatmentPlan": {
+            "immediateSteps": ["step 1", "step 2"],
+            "chemicalSolutions": [
+              {
+                "activeIngredient": "ingredient",
+                "commercialNames": "example brand names",
+                "dosagePerLiter": "dosage amount",
+                "recommendedDilution": "dilution ratio",
+                "safetyWaitingPeriodDays": number
+              }
+            ],
+            "organicSolutions": [
+              {
+                "name": "solution name",
+                "preparation": "how to prepare",
+                "applicationRate": "rate of application",
+                "frequency": "how often"
+              }
+            ],
+            "preventativeMeasures": ["measure 1", "measure 2"],
+            "sprayingGuidelines": {
+              "bestTiming": "optimal time of day",
+              "weatherPrecautions": "weather conditions to avoid",
+              "ppeRequired": ["item 1", "item 2"]
+            }
+          },
+          "recoveryTimeline": [
+            { "day": 1, "expectedMilestone": "milestone description", "actionRequired": "action to take" }
+          ]
+        }
+        
+        Return ONLY raw JSON. Do not wrap it in markdown block quotes.
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: promptText },
+              { inlineData: { data: base64Data, mimeType: mimeType } }
+            ]
+          }
+        ]
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete diagnosis');
-      }
+      const cleanJsonStr = (response.text || '').replace(/```json/g, '').replace(/```/g, '').trim();
+      const result: CropDiagnosis = JSON.parse(cleanJsonStr);
 
-      const result: CropDiagnosis = data.diagnosis;
       setDiagnosis(result);
 
-      // Save to history
       const newHistoryItem: HistoryItem = {
         id: `scan-${Date.now()}`,
         timestamp: new Date().toISOString(),
@@ -154,12 +228,11 @@ export default function App() {
       setHistory(updatedHistory);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(updatedHistory));
 
-      // Switch to Diagnosis tab on Android
       setActiveTab('diagnosis');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('Diagnosis error:', err);
-      setErrorMessage(err.message || 'Diagnostic error occurred. Please retry.');
+      setErrorMessage(err.message || 'Diagnostic error occurred while connecting to Gemini API.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -202,7 +275,6 @@ export default function App() {
         ? 'bg-[#001710] text-white' 
         : 'bg-[#f4fbf4] text-[#161d19]'
     }`}>
-      {/* Android Top App Bar with live real-time field weather ticker */}
       <AndroidTopBar
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
@@ -212,9 +284,7 @@ export default function App() {
         onOpenAiSetup={() => setIsAiModalOpen(true)}
       />
 
-      {/* Main Multi-Paged View Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-6 space-y-6">
-        {/* Error notification banner */}
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a] flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 font-bold">
@@ -230,7 +300,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab Page 1: SCAN */}
         {activeTab === 'scan' && (
           <ScannerHero
             currentLang={currentLang}
@@ -245,7 +314,6 @@ export default function App() {
           />
         )}
 
-        {/* Tab Page 2: DIAGNOSIS & PRESCRIPTION */}
         {activeTab === 'diagnosis' && (
           diagnosis ? (
             <DiagnosisResult
@@ -278,12 +346,10 @@ export default function App() {
           )
         )}
 
-        {/* Tab Page 3: SPRAYER TANK & DOSAGE CALCULATOR */}
         {activeTab === 'calculator' && (
           <CalculatorPage currentLang={currentLang} />
         )}
 
-        {/* Tab Page 4: INDIAN CROP DISEASE GUIDE */}
         {activeTab === 'guide' && (
           <CropGuidePage
             currentLang={currentLang}
@@ -291,7 +357,6 @@ export default function App() {
           />
         )}
 
-        {/* Tab Page 5: FIELD SCAN HISTORY */}
         {activeTab === 'history' && (
           <HistoryPage
             history={history}
@@ -303,7 +368,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Android Bottom Navigation Bar */}
       <AndroidNavBar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -315,13 +379,11 @@ export default function App() {
         historyCount={history.length}
       />
 
-      {/* Flutter Source Code Export Modal */}
       <FlutterExportModal
         isOpen={isFlutterModalOpen}
         onClose={() => setIsFlutterModalOpen(false)}
       />
 
-      {/* Gemini AI Vision Engine & Setup Guide Modal */}
       <AiEngineModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
@@ -330,3 +392,5 @@ export default function App() {
     </div>
   );
 }
+
+```
