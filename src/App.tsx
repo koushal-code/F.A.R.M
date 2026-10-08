@@ -157,7 +157,7 @@ export default function App() {
           "visualSymptoms": ["symptom 1", "symptom 2"],
           "damageAnalysis": {
             "leafDamageDescription": "description",
-            "vulnerableParts": ["leaves", "stems", etc],
+            "vulnerableParts": ["leaves", "stems"],
             "spreadRate": "description of how fast it spreads",
             "potentialYieldLossPercent": 0-100
           },
@@ -169,7 +169,7 @@ export default function App() {
                 "commercialNames": "example brand names",
                 "dosagePerLiter": "dosage amount",
                 "recommendedDilution": "dilution ratio",
-                "safetyWaitingPeriodDays": number
+                "safetyWaitingPeriodDays": 7
               }
             ],
             "organicSolutions": [
