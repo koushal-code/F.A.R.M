@@ -10,9 +10,12 @@ export interface RealtimeWeather {
   conditionText: string;
   sprayCondition: 'optimal' | 'wind_alert' | 'rain_alert' | 'humidity_alert';
   sprayConditionText: string;
+  agriculturalAdvice?: string;
   locationName: string;
   lastUpdated: string;
   source: 'OpenWeatherMap' | 'Open-Meteo' | 'Fallback';
+  hourly?: Array<{ time: string; temp: number; pop: number; wind: number }>;
+  daily?: Array<{ day: string; tempMax: number; tempMin: number; condition: string; pop: number }>;
 }
 
 export interface RegionPreset {
@@ -20,6 +23,7 @@ export interface RegionPreset {
   name: Record<SupportedLanguage, string>;
   lat: number;
   lon: number;
+  suggestedLang?: SupportedLanguage;
 }
 
 export const REGION_PRESETS: RegionPreset[] = [
@@ -33,7 +37,21 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'ஹைதராபாத் (தெலுங்கானா)'
     },
     lat: 17.3850,
-    lon: 78.4867
+    lon: 78.4867,
+    suggestedLang: 'te'
+  },
+  {
+    id: 'warangal',
+    name: {
+      en: 'Warangal (Telangana)',
+      hi: 'वारंगल (तेलंगाना)',
+      te: 'వరంగల్ (తెలంగాణ)',
+      kn: 'ವಾರಂಗಲ್ (ತೆಲಂಗಾಣ)',
+      ta: 'வாரங்கல் (தெலுங்கானா)'
+    },
+    lat: 17.9689,
+    lon: 79.5941,
+    suggestedLang: 'te'
   },
   {
     id: 'vijayawada',
@@ -45,7 +63,21 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'விஜயவாடா (ஆந்திரா)'
     },
     lat: 16.5062,
-    lon: 80.6480
+    lon: 80.6480,
+    suggestedLang: 'te'
+  },
+  {
+    id: 'kurnool',
+    name: {
+      en: 'Kurnool (Andhra Pradesh)',
+      hi: 'कुरनूल (आंध्र प्रदेश)',
+      te: 'కర్నూలు (ఆంధ్ర ప్రదేశ్)',
+      kn: 'ಕರ್ನೂಲ್ (ಆಂಧ್ರಪ್ರದೇಶ)',
+      ta: 'கர்னூல் (ஆந்திரா)'
+    },
+    lat: 15.8281,
+    lon: 78.0373,
+    suggestedLang: 'te'
   },
   {
     id: 'bengaluru',
@@ -57,7 +89,21 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'பெங்களூரு (கர்நாடகா)'
     },
     lat: 12.9716,
-    lon: 77.5946
+    lon: 77.5946,
+    suggestedLang: 'kn'
+  },
+  {
+    id: 'dharwad',
+    name: {
+      en: 'Dharwad / Hubli (Karnataka)',
+      hi: 'धारवाड़ / हुबली (कर्नाटक)',
+      te: 'ధార్వాడ్ (కర్ణాటక)',
+      kn: 'ಧಾರವಾಡ / ಹುಬ್ಬಳ್ಳಿ (ಕರ್ನಾಟಕ)',
+      ta: 'தார்வாட் (கர்நாடகா)'
+    },
+    lat: 15.4589,
+    lon: 75.0078,
+    suggestedLang: 'kn'
   },
   {
     id: 'chennai',
@@ -69,7 +115,21 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'சென்னை (தமிழ்நாடு)'
     },
     lat: 13.0827,
-    lon: 80.2707
+    lon: 80.2707,
+    suggestedLang: 'ta'
+  },
+  {
+    id: 'thanjavur',
+    name: {
+      en: 'Thanjavur Delta (Tamil Nadu)',
+      hi: 'तंजावुर (तमिलनाडु)',
+      te: 'తంజావూరు (తమిళనాడు)',
+      kn: 'ತಂಜಾವೂರು (ತಮಿಳುನಾಡು)',
+      ta: 'தஞ்சாவூர் (தமிழ்நாடு)'
+    },
+    lat: 10.7870,
+    lon: 79.1378,
+    suggestedLang: 'ta'
   },
   {
     id: 'delhi',
@@ -81,7 +141,21 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'புது தில்லி'
     },
     lat: 28.6139,
-    lon: 77.2090
+    lon: 77.2090,
+    suggestedLang: 'hi'
+  },
+  {
+    id: 'ludhiana',
+    name: {
+      en: 'Ludhiana (Punjab)',
+      hi: 'लुधियाना (पंजाब)',
+      te: 'లూధియానా (పంజాబ్)',
+      kn: 'ಲುಧಿಯಾನ (ಪಂಜಾಬ್)',
+      ta: 'லூதியானா (பஞ்சாப்)'
+    },
+    lat: 30.9010,
+    lon: 75.8573,
+    suggestedLang: 'hi'
   },
   {
     id: 'pune',
@@ -93,7 +167,8 @@ export const REGION_PRESETS: RegionPreset[] = [
       ta: 'புனே (மகாராஷ்டிரா)'
     },
     lat: 18.5204,
-    lon: 73.8567
+    lon: 73.8567,
+    suggestedLang: 'hi'
   }
 ];
 
@@ -156,7 +231,7 @@ export async function fetchLiveWeather(
 
   // 1. Try server-side or OpenWeatherMap API proxy
   try {
-    const owmRes = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+    const owmRes = await fetch(`/api/weather?lat=${lat}&lon=${lon}&lang=${lang}`);
     if (owmRes.ok) {
       const owmData = await owmRes.json();
       if (owmData && owmData.success && owmData.data) {
@@ -185,11 +260,14 @@ export async function fetchLiveWeather(
           apparentTemperature: Math.round(d.apparentTemperature ?? temp),
           weatherCode: d.weatherId || 800,
           conditionText: dict[condKey] || d.description || dict.clear,
-          sprayCondition,
+          sprayCondition: (d.sprayCondition || sprayCondition) as any,
           sprayConditionText: dict[sprayCondition] || dict.optimal,
+          agriculturalAdvice: d.agriculturalAdvice,
           locationName: d.cityName || locationLabel,
           lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          source: 'OpenWeatherMap'
+          source: owmData.source || 'OpenWeatherMap',
+          hourly: d.hourly,
+          daily: d.daily
         };
       }
     }

@@ -650,6 +650,25 @@ ${diagnosis.treatmentPlan.organicSolutions.map(o => o.name).join(', ')}`;
           </div>
         </div>
       )}
+
+      {/* Persistent Bottom Action Controls for Seamless Navigation */}
+      <div className="pt-4 border-t border-[#dde4de] flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#c0c9c3] shadow-sm print:hidden">
+        <button
+          onClick={onReset}
+          className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl border-2 border-[#1b6d24] text-[#1b6d24] hover:bg-[#eef5ef] text-xs font-display font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>{t.scanAnother}</span>
+        </button>
+
+        <button
+          onClick={onOpenDosageCalculator}
+          className="flex-1 min-h-[44px] px-4 py-2.5 rounded-xl bg-[#003629] hover:bg-[#1b4d3e] text-white text-xs font-display font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+        >
+          <Droplets className="w-4 h-4 text-[#a0f399]" />
+          <span>{t.calculateDosage}</span>
+        </button>
+      </div>
     </div>
   );
 };

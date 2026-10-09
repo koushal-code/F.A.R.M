@@ -1,11 +1,9 @@
-```tsx
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { AndroidTopBar } from './components/AndroidTopBar';
 import { AndroidNavBar } from './components/AndroidNavBar';
 import { ScannerHero } from './components/ScannerHero';
@@ -72,6 +70,8 @@ export default function App() {
         setSelectedSample(updatedSample);
         executeDiagnosis(updatedSample.id, null, updatedSample.cropName, '', lang);
       }
+    } else if (diagnosis) {
+      executeDiagnosis(undefined, customImageBase64, diagnosis.cropName, '', lang);
     }
   };
 
@@ -120,38 +120,34 @@ export default function App() {
       let mimeType = 'image/jpeg';
 
       if (targetBase64) {
-        base64Data = targetBase64.includes(',') ? targetBase64.split(',')[1] : targetBase64;
+        base64Data = targetBase64;
         mimeType = customFile ? customFile.type : 'image/jpeg';
       } else if (selectedSample && selectedSample.thumbnail.startsWith('data:')) {
-        base64Data = selectedSample.thumbnail.split(',')[1];
-      } else {
-        throw new Error("Remote sample images must be converted to base64 or you must upload a new photo.");
+        base64Data = selectedSample.thumbnail;
       }
 
-      const apiKey = localStorage.getItem('farm_custom_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("Gemini API key is missing. Please configure it in the AI Engine settings.");
-      }
+      const customApiKey = localStorage.getItem('farm_custom_api_key') || undefined;
 
-      const ai = new GoogleGenAI({ apiKey });
-
-      const promptText = `Analyze this crop leaf image. Crop hint provided by user: ${cropHint || 'None'}. Field notes provided by user: ${notes || 'None'}. Identify the specific disease, pest, or nutrient deficiency and provide a comprehensive treatment protocol. You MUST return the response ONLY as a valid JSON object matching this exact TypeScript interface structure: {"id": "unique-string-identifier", "cropName": "Name of the crop", "diagnosisName": "Name of the disease or issue", "scientificPathogen": "Scientific name of pathogen", "severityLevel": "Low", "healthScore": 85, "confidenceScore": 90, "issueType": "Fungal", "farmerVernacularSummary": "A clear explanation", "affectedAreaPercentage": 10, "visualSymptoms": ["symptom 1"], "damageAnalysis": {"leafDamageDescription": "desc", "vulnerableParts": ["leaves"], "spreadRate": "slow", "potentialYieldLossPercent": 5}, "treatmentPlan": {"immediateSteps": ["step 1"], "chemicalSolutions": [{"activeIngredient": "ing", "commercialNames": "brand", "dosagePerLiter": "2g", "recommendedDilution": "1L", "safetyWaitingPeriodDays": 7}], "organicSolutions": [{"name": "org", "preparation": "prep", "applicationRate": "rate", "frequency": "freq"}], "preventativeMeasures": ["measure 1"], "sprayingGuidelines": {"bestTiming": "morning", "weatherPrecautions": "none", "ppeRequired": ["gloves"]}}, "recoveryTimeline": [{"day": 1, "expectedMilestone": "milestone", "actionRequired": "action"}]} Return ONLY raw JSON.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: promptText },
-              { inlineData: { data: base64Data, mimeType: mimeType } }
-            ]
-          }
-        ]
+      const response = await fetch('/api/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64Data || undefined,
+          mimeType,
+          sampleId: sampleId || (selectedSample ? selectedSample.id : undefined),
+          cropHint,
+          additionalNotes: notes,
+          lang: langToUse,
+          customApiKey
+        })
       });
 
-      const cleanJsonStr = (response.text || '').replace(/```json/g, '').replace(/```/g, '').trim();
-      const result: CropDiagnosis = JSON.parse(cleanJsonStr);
+      const data = await response.json();
+      if (!response.ok || !data.success || !data.diagnosis) {
+        throw new Error(data.error || 'Diagnostic error occurred during analysis.');
+      }
+
+      const result: CropDiagnosis = data.diagnosis;
 
       setDiagnosis(result);
 
@@ -174,7 +170,7 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('Diagnosis error:', err);
-      setErrorMessage(err.message || 'Diagnostic error occurred while connecting to Gemini API.');
+      setErrorMessage(err.message || 'Diagnostic error occurred while connecting to AI Engine.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -226,7 +222,7 @@ export default function App() {
         onOpenAiSetup={() => setIsAiModalOpen(true)}
       />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 pt-3 pb-36 sm:pb-44 space-y-6">
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a] flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 font-bold">
@@ -245,6 +241,7 @@ export default function App() {
         {activeTab === 'scan' && (
           <ScannerHero
             currentLang={currentLang}
+            onLanguageChange={handleLanguageChange}
             highContrast={highContrast}
             samples={samples}
             selectedSample={selectedSample}
@@ -334,5 +331,3 @@ export default function App() {
     </div>
   );
 }
-
-```

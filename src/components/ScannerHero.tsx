@@ -3,9 +3,11 @@ import { Camera, Upload, Scan, CheckCircle2, ChevronRight, HelpCircle, Mic, Spar
 import { CropSample, SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
+import { WeatherForecastCard } from './WeatherForecastCard';
 
 interface ScannerHeroProps {
   currentLang: SupportedLanguage;
+  onLanguageChange: (lang: SupportedLanguage) => void;
   highContrast: boolean;
   samples: CropSample[];
   selectedSample: CropSample | null;
@@ -59,6 +61,7 @@ function resizeImageFile(file: File, maxDim = 1200, quality = 0.85): Promise<str
 
 export const ScannerHero: React.FC<ScannerHeroProps> = ({
   currentLang,
+  onLanguageChange,
   highContrast,
   samples,
   selectedSample,
@@ -129,6 +132,13 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Integrated Live Field Weather Forecast & Context-Aware Agricultural Advisory */}
+      <WeatherForecastCard
+        currentLang={currentLang}
+        onLanguageChange={onLanguageChange}
+        highContrast={highContrast}
+      />
 
       {/* Main Scanner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
