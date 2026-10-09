@@ -75,19 +75,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-    <link rel="apple-touch-icon" href="/icon-192.png">
   </head>
   <body class="bg-[#f4fbf4] text-[#161d19] antialiased selection:bg-[#a0f399] selection:text-[#003629]">
     <div id="root"></div>
-    <script>
-      if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').catch(function() {});
-        });
-      }
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

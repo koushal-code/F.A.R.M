@@ -131,13 +131,6 @@ export interface TranslationDictionary {
   stopTracking: string;
   startLiveTracking: string;
   regionalPrecision: string;
-  weatherForecastTitle: string;
-  weatherAdvisory: string;
-  locateMyField: string;
-  nearbyAgriCenters: string;
-  hourlyForecast: string;
-  installAndroidApp: string;
-  offlineReady: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
@@ -266,14 +259,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
     detectingLocation: 'Acquiring high-precision GPS satellite fix...',
     stopTracking: 'Stop Live Tracking',
     startLiveTracking: 'Start Live GPS Tracking',
-    regionalPrecision: 'Regional Precision',
-    weatherForecastTitle: 'Live Field Weather & Microclimate',
-    weatherAdvisory: 'Context-Aware Agricultural Advice',
-    locateMyField: 'Locate My Field (GPS)',
-    nearbyAgriCenters: 'Nearby Agricultural Centers & KVKs',
-    hourlyForecast: 'Hourly Microclimate',
-    installAndroidApp: 'Install on Android',
-    offlineReady: 'Offline Field Diagnostic Mode Active'
+    regionalPrecision: 'Regional Precision'
   },
   hi: {
     appName: 'फार्म (FARM)',
@@ -400,14 +386,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
     detectingLocation: 'जीपीएस उपग्रह से सटीक स्थिति खोजी जा रही है...',
     stopTracking: 'लाइव ट्रैकिंग रोकें',
     startLiveTracking: 'लाइव जीपीएस ट्रैकिंग शुरू करें',
-    regionalPrecision: 'क्षेत्रीय सूक्ष्म सटीकता',
-    weatherForecastTitle: 'खेत का मौसम एवं सूक्ष्म जलवायु',
-    weatherAdvisory: 'मौसम आधारित कृषि सलाह',
-    locateMyField: 'मेरा खेत खोजें (GPS)',
-    nearbyAgriCenters: 'निकटतम कृषि विज्ञान केंद्र (KVK)',
-    hourlyForecast: 'प्रति घंटा मौसम पूर्वानुमान',
-    installAndroidApp: 'एंड्रॉइड पर इंस्टॉल करें',
-    offlineReady: 'ऑफ़लाइन निदान मोड सक्रिय'
+    regionalPrecision: 'क्षेत्रीय सूक्ष्म सटीकता'
   },
   te: {
     appName: 'ఫార్మ్ (FARM)',
@@ -534,14 +513,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
     detectingLocation: 'ఉపగ్రహం ద్వారా పొలం ఖచ్చితమైన స్థానాన్ని గుర్తిస్తున్నాము...',
     stopTracking: 'లైవ్ ట్రాకింగ్ ఆపండి',
     startLiveTracking: 'లైవ్ జీపీఎస్ ట్రాకింగ్ ప్రారంభించండి',
-    regionalPrecision: 'ప్రాంతీయ ఖచ్చితత్వం',
-    weatherForecastTitle: 'పొలం ప్రత్యక్ష వాతావరణం & సూక్ష్మ శీతోష్ణస్థితి',
-    weatherAdvisory: 'వాతావరణ ఆధారిత వ్యవసాయ సలహా',
-    locateMyField: 'నా పొలం లొకేషన్ గుర్తించు (GPS)',
-    nearbyAgriCenters: 'సమీప కృషి విజ్ఞాన కేంద్రాలు (KVKs)',
-    hourlyForecast: 'గంటల వారీ వాతావరణం',
-    installAndroidApp: 'ఆండ్రాయిడ్‌లో ఇన్‌స్టాల్ చేయండి',
-    offlineReady: 'ఆఫ్‌లైన్ వ్యాధి నిర్ధారణ మోడ్ సిద్ధం'
+    regionalPrecision: 'ప్రాంతీయ ఖచ్చితత్వం'
   },
   kn: {
     appName: 'ಫಾರ್ಮ್ (FARM)',
@@ -668,14 +640,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
     detectingLocation: 'ಉಪಗ್ರಹದ ಮೂಲಕ ನಿಖರ ಸ್ಥಳವನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...',
     stopTracking: 'ಲೈವ್ ಟ್ರ್ಯಾಕಿಂಗ್ ನಿಲ್ಲಿಸಿ',
     startLiveTracking: 'ಲೈವ್ ಜಿಪಿಎಸ್ ಟ್ರ್ಯಾಕಿಂಗ್ ಆರಂಭಿಸಿ',
-    regionalPrecision: 'ಪ್ರಾದೇಶಿಕ ನಿಖರತೆ',
-    weatherForecastTitle: 'ಹೊಲದ ನೇರ ಹವಾಮಾನ ಮತ್ತು ಕೃಷಿ ವಾತಾವರಣ',
-    weatherAdvisory: 'ಹವಾಮಾನ ಆಧಾರಿತ ಕೃಷಿ ಸಲಹೆ',
-    locateMyField: 'ನನ್ನ ಹೊಲದ ಸ್ಥಳ ಗುರುತಿಸಿ (GPS)',
-    nearbyAgriCenters: 'ಹತ್ತಿರದ ಕೃಷಿ ವಿಜ್ಞಾನ ಕೇಂದ್ರಗಳು (KVK)',
-    hourlyForecast: 'ಗಂಟೆಗಳ ಹವಾಮಾನ',
-    installAndroidApp: 'ಆಂಡ್ರಾಯ್ಡ್‌ನಲ್ಲಿ ಸ್ಥಾಪಿಸಿ',
-    offlineReady: 'ಆಫ್‌ಲೈನ್ ರೋಗ ಪತ್ತೆ ಸಿದ್ಧ'
+    regionalPrecision: 'ಪ್ರಾದೇಶಿಕ ನಿಖರತೆ'
   },
   ta: {
     appName: 'பார்ம் (FARM)',
@@ -802,13 +767,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
     detectingLocation: 'செயற்கைக்கோள் மூலம் வயல் இருப்பிடம் துல்லியமாக கண்டறியப்படுகிறது...',
     stopTracking: 'நேரலை டிராக்கிங்கை நிறுத்து',
     startLiveTracking: 'நேரலை ஜிபிஎஸ் டிராக்கிங்கை தொடங்கு',
-    regionalPrecision: 'மண்டல நுண்ணிய துல்லியம்',
-    weatherForecastTitle: 'நேரடி பண்ணை வானிலை & வேளாண் காலநிலை',
-    weatherAdvisory: 'வானிலை சார்ந்த விவசாய ஆலோசனை',
-    locateMyField: 'என் பண்ணை இருப்பிடத்தை கண்டறி (GPS)',
-    nearbyAgriCenters: 'அருகிலுள்ள வேளாண் அறிவியல் மையங்கள் (KVK)',
-    hourlyForecast: 'மணிநேர வானிலை',
-    installAndroidApp: 'ஆண்ட்ராய்டில் நிறுவவும்',
-    offlineReady: 'ஆஃப்லைன் பயிர் நோயறிதல் தயார்'
+    regionalPrecision: 'மண்டல நுண்ணிய துல்லியம்'
   }
 };

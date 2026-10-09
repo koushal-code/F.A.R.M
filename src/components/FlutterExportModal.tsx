@@ -94,28 +94,14 @@ export const FlutterExportModal: React.FC<FlutterExportModalProps> = ({
               );
             })}
 
-            <div className="mt-4 p-3 rounded-xl bg-white border border-[#dde4de] text-[11px] text-[#404945] space-y-2">
-              <div className="font-extrabold text-[#003629] flex items-center gap-1.5">
-                <Smartphone className="w-3.5 h-3.5 text-[#1b6d24]" />
-                <span>How to Convert to Android APK:</span>
-              </div>
-              <div className="text-[10px] space-y-1.5 text-[#56605b]">
-                <p className="font-bold text-[#1b6d24]">Method A: Flutter Native Offline APK</p>
-                <code className="block bg-[#eef5ef] p-1.5 rounded font-mono text-[9.5px] text-[#003629]">
-                  flutter pub get<br/>
-                  flutter build apk --release
-                </code>
-                <p className="italic text-[9.5px]">Produces <span className="font-mono">app-release.apk</span> with offline on-device TFLite models in assets/.</p>
-
-                <p className="font-bold text-[#1b6d24] pt-1">Method B: Instant PWA Install on Android</p>
-                <p className="text-[9.5px]">Open in Android Chrome → tap <strong>Install App</strong> or Add to Home Screen. Runs standalone like native APK.</p>
-
-                <p className="font-bold text-[#1b6d24] pt-1">Method C: Bubblewrap TWA CLI</p>
-                <code className="block bg-[#eef5ef] p-1.5 rounded font-mono text-[9.5px] text-[#003629]">
-                  npx @bubblewrap/cli init<br/>
-                  npx @bubblewrap/cli build
-                </code>
-              </div>
+            <div className="mt-4 p-3 rounded-xl bg-white border border-[#dde4de] text-[11px] text-[#404945]">
+              <strong>Quick Start:</strong>
+              <ol className="list-decimal list-inside space-y-1 mt-1 text-[10px]">
+                <li>Install Flutter SDK on your computer</li>
+                <li>Run <code>flutter create farm_app</code></li>
+                <li>Copy these files into your <code>lib/</code> folder</li>
+                <li>Run <code>flutter run</code> on Android emulator/phone</li>
+              </ol>
             </div>
           </div>
 

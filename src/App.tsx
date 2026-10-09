@@ -70,8 +70,6 @@ export default function App() {
         setSelectedSample(updatedSample);
         executeDiagnosis(updatedSample.id, null, updatedSample.cropName, '', lang);
       }
-    } else if (diagnosis) {
-      executeDiagnosis(undefined, customImageBase64, diagnosis.cropName, '', lang);
     }
   };
 
@@ -111,44 +109,33 @@ export default function App() {
 
     try {
       const targetBase64 = base64 || customImageBase64;
-      
-      if (!targetBase64 && !selectedSample) {
-        throw new Error("No image data available for analysis. Please capture a new image.");
+      const targetSampleId = sampleId || selectedSample?.id;
+
+      if (!targetBase64 && !targetSampleId) {
+        throw new Error("No image data available for analysis. Please capture or select an image.");
       }
 
-      let base64Data = '';
-      let mimeType = 'image/jpeg';
-
-      if (targetBase64) {
-        base64Data = targetBase64;
-        mimeType = customFile ? customFile.type : 'image/jpeg';
-      } else if (selectedSample && selectedSample.thumbnail.startsWith('data:')) {
-        base64Data = selectedSample.thumbnail;
-      }
-
-      const customApiKey = localStorage.getItem('farm_custom_api_key') || undefined;
+      const mimeType = customFile ? customFile.type : 'image/jpeg';
 
       const response = await fetch('/api/diagnose', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageBase64: base64Data || undefined,
+          sampleId: targetSampleId,
+          imageBase64: targetBase64 || undefined,
           mimeType,
-          sampleId: sampleId || (selectedSample ? selectedSample.id : undefined),
-          cropHint,
-          additionalNotes: notes,
+          cropHint: cropHint || undefined,
+          additionalNotes: notes || undefined,
           lang: langToUse,
-          customApiKey
-        })
+        }),
       });
 
       const data = await response.json();
       if (!response.ok || !data.success || !data.diagnosis) {
-        throw new Error(data.error || 'Diagnostic error occurred during analysis.');
+        throw new Error(data.error || 'Diagnostic error occurred while analyzing specimen.');
       }
 
       const result: CropDiagnosis = data.diagnosis;
-
       setDiagnosis(result);
 
       const newHistoryItem: HistoryItem = {
@@ -170,7 +157,7 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       console.error('Diagnosis error:', err);
-      setErrorMessage(err.message || 'Diagnostic error occurred while connecting to AI Engine.');
+      setErrorMessage(err.message || 'Diagnostic error occurred while connecting to server.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -222,7 +209,7 @@ export default function App() {
         onOpenAiSetup={() => setIsAiModalOpen(true)}
       />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 pt-3 pb-36 sm:pb-44 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-6 space-y-6">
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a] flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 font-bold">
@@ -241,7 +228,6 @@ export default function App() {
         {activeTab === 'scan' && (
           <ScannerHero
             currentLang={currentLang}
-            onLanguageChange={handleLanguageChange}
             highContrast={highContrast}
             samples={samples}
             selectedSample={selectedSample}

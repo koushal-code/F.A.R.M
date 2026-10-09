@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2, Key, ExternalLink, Cpu, RefreshCw, Send, AlertCircle, Save, Trash2, ShieldCheck } from 'lucide-react';
+import { X, CheckCircle2, Cpu, RefreshCw, ShieldCheck } from 'lucide-react';
 import { SupportedLanguage } from '../types/farm';
 
 interface AiEngineModalProps {
@@ -21,24 +21,14 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
     fallbackEngines?: string[];
   }>({
     active: true,
-    model: 'gemini-3.1-flash-lite',
+    model: 'gemini-3.8-flash',
     hasKey: true,
-    provider: 'Google AI Studio',
+    provider: 'Server-Side Diagnostic Engine',
   });
   const [testing, setTesting] = useState(false);
-  const [customKeyInput, setCustomKeyInput] = useState('');
-  const [savedKey, setSavedKey] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [testingCustomKey, setTestingCustomKey] = useState(false);
-  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      const stored = localStorage.getItem('farm_custom_api_key');
-      if (stored) {
-        setSavedKey(stored);
-        setCustomKeyInput(stored);
-      }
       fetch('/api/ai-status')
         .then(res => res.json())
         .then(data => setStatus(data))
@@ -61,77 +51,31 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
     }
   };
 
-  const handleTestCustomKey = async () => {
-    if (!customKeyInput.trim()) return;
-    setTestingCustomKey(true);
-    setTestResult(null);
-
-    try {
-      const res = await fetch('/api/test-gemini-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: customKeyInput.trim() })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setTestResult({ success: true, message: data.message || 'API Key is authenticated and operational!' });
-      } else {
-        setTestResult({ success: false, message: data.error || 'Failed to authenticate this key' });
-      }
-    } catch (err: any) {
-      setTestResult({ success: false, message: err?.message || 'Connection error' });
-    } finally {
-      setTestingCustomKey(false);
-    }
-  };
-
-  const handleSaveKey = () => {
-    if (!customKeyInput.trim()) return;
-    localStorage.setItem('farm_custom_api_key', customKeyInput.trim());
-    setSavedKey(customKeyInput.trim());
-    setSaveSuccessMsg('API Key saved! Future crop analysis scans will prioritize this key.');
-    setTimeout(() => setSaveSuccessMsg(null), 4000);
-  };
-
-  const handleClearKey = () => {
-    localStorage.removeItem('farm_custom_api_key');
-    setSavedKey(null);
-    setCustomKeyInput('');
-    setTestResult(null);
-    setSaveSuccessMsg('Custom API key removed. Using default server credentials.');
-    setTimeout(() => setSaveSuccessMsg(null), 3000);
-  };
-
-  const titles: Record<SupportedLanguage, { title: string; subtitle: string; howTo: string; testHeading: string }> = {
+  const titles: Record<SupportedLanguage, { title: string; subtitle: string; howTo: string }> = {
     en: {
-      title: 'Gemini AI Vision Engine & API Setup',
+      title: 'Agricultural Vision & Audio Diagnostic Engine',
       subtitle: 'Real-time crop pathology and leaf lesion neural analysis',
-      howTo: 'How to Generate & Connect Your API Key',
-      testHeading: 'Test / Connect Custom API Key'
+      howTo: 'How Diagnostic Pipeline Works',
     },
     hi: {
-      title: 'जेमिनी एआई विज़न इंजन और एपीआई सेटअप',
+      title: 'कृषि विज़न और ऑडियो डायग्नोस्टिक इंजन',
       subtitle: 'वास्तविक समय में फसल रोग और पत्ती क्षति का तंत्रिका विश्लेषण',
-      howTo: 'अपनी एपीआई की (API Key) कैसे बनाएं और जोड़ें',
-      testHeading: 'कस्टम एपीआई की (API Key) का परीक्षण व सेव करें'
+      howTo: 'डायग्नोस्टिक पाइपलाइन कैसे काम करती है',
     },
     te: {
-      title: 'జెమిని AI విజన్ ఇంజిన్ & API సెటప్',
+      title: 'వ్యవసాయ విజన్ & ఆడియో డయాగ్నస్టిక్ ఇంజిన్',
       subtitle: 'పంటల తెగుళ్లు మరియు ఆకుల నష్టం యొక్క ఖచ్చితమైన విశ్లేషణ',
-      howTo: 'API కీ (API Key) ఎలా తయారు చేయాలి మరియు ఇక్కడ ఎలా అనుసంధానించాలి',
-      testHeading: 'మీ API కీని ఇక్కడ పరీక్షించి భద్రపరచండి'
+      howTo: 'డయాగ్నస్టిక్ పైప్‌లైన్ ఎలా పనిచేస్తుంది',
     },
     kn: {
-      title: 'ಜೆಮಿನಿ AI ವಿಷನ್ ಇಂಜಿನ್ ಮತ್ತು API ಸೆಟಪ್',
+      title: 'ಕೃಷಿ ವಿಷನ್ ಮತ್ತು ಆಡಿಯೋ ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಇಂಜಿನ್',
       subtitle: 'ಬೆಳೆ ರೋಗ ಮತ್ತು ಎಲೆ ಹಾನಿಯ ನೈಜ ಸಮಯದ ವಿಶ್ಲೇಷಣೆ',
-      howTo: 'ನಿಮ್ಮ API ಕೀಲಿಯನ್ನು ಹೇಗೆ ರಚಿಸುವುದು ಮತ್ತು ಸಂಪರ್ಕಿಸುವುದು',
-      testHeading: 'ಕಸ್ಟಮ್ API ಕೀ ಪರೀಕ್ಷಿಸಿ ಉಳಿಸಿ'
+      howTo: 'ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಪೈಪ್‌ಲೈನ್ ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ',
     },
     ta: {
-      title: 'ஜெமினி AI விஷன் என்ஜின் & API அமைப்பு',
+      title: 'விவசாய விஷன் & ஆடியோ கண்டறியும் என்ஜின்',
       subtitle: 'பயிர் நோய் மற்றும் இலை சேதத்தின் நிகழ்நேர ஆய்வு',
-      howTo: 'உங்கள் API சாவியை எவ்வாறு உருவாக்கி இணைப்பது',
-      testHeading: 'API சாவியை சோதித்து சேமிக்கவும்'
+      howTo: 'கண்டறியும் பைப்லைன் எவ்வாறு செயல்படுகிறது',
     }
   };
 
@@ -173,16 +117,11 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
               <CheckCircle2 className="w-6 h-6 text-[#1b6d24] flex-shrink-0" />
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-[#1b6d24] block">
-                  AI Engine Status: Active & Operational
+                  Engine Status: Active & Operational
                 </span>
                 <span className="font-display text-sm font-bold text-[#003629]">
                   Model: {status.model}
                 </span>
-                {savedKey && (
-                  <span className="block text-[11px] font-bold text-emerald-700 mt-0.5">
-                    ● Custom Key Applied ({savedKey.slice(0, 8)}...)
-                  </span>
-                )}
               </div>
             </div>
 
@@ -196,73 +135,10 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
             </button>
           </div>
 
-          {/* Interactive Test & Save Key Field */}
-          <div className="p-4 rounded-xl border border-[#c0c9c3] bg-white space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-display text-xs font-bold text-[#003629] flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-[#1b6d24]" />
-                {currentText.testHeading}
-              </h4>
-              {savedKey && (
-                <button
-                  onClick={handleClearKey}
-                  className="text-[11px] font-bold text-red-600 hover:text-red-800 flex items-center gap-1"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  Clear Key
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="password"
-                placeholder="Paste AI Studio API Key (AIzaSy...)"
-                value={customKeyInput}
-                onChange={(e) => setCustomKeyInput(e.target.value)}
-                className="flex-1 px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4] font-mono"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleTestCustomKey}
-                  disabled={testingCustomKey || !customKeyInput.trim()}
-                  className="px-3 py-2 rounded-lg bg-[#003629] text-white text-xs font-bold hover:bg-[#1b4d3e] disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {testingCustomKey ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-                  Test
-                </button>
-                <button
-                  onClick={handleSaveKey}
-                  disabled={!customKeyInput.trim()}
-                  className="px-3 py-2 rounded-lg bg-[#1b6d24] text-white text-xs font-bold hover:bg-[#14531b] disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  <Save className="w-3 h-3" />
-                  Save
-                </button>
-              </div>
-            </div>
-
-            {saveSuccessMsg && (
-              <div className="p-2 rounded-lg text-xs bg-[#eef5ef] text-[#1b6d24] flex items-center gap-2 font-bold">
-                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-                <span>{saveSuccessMsg}</span>
-              </div>
-            )}
-
-            {testResult && (
-              <div className={`p-2 rounded-lg text-xs flex items-center gap-2 ${
-                testResult.success ? 'bg-[#eef5ef] text-[#1b6d24]' : 'bg-[#ffdad6] text-[#ba1a1a]'
-              }`}>
-                {testResult.success ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-                <span>{testResult.message}</span>
-              </div>
-            )}
-          </div>
-
-          {/* How to generate & configure Gemini API Key Guide */}
+          {/* Pipeline Overview */}
           <div>
             <h4 className="font-display text-sm font-bold text-[#003629] mb-2 flex items-center gap-2">
-              <Key className="w-4 h-4 text-[#1b6d24]" />
+              <ShieldCheck className="w-4 h-4 text-[#1b6d24]" />
               {currentText.howTo}
             </h4>
 
@@ -273,18 +149,9 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
                     1
                   </span>
                   <div>
-                    <strong>Step 1: Generate your Google AI Studio API Key</strong>
+                    <strong>Step 1: Multimodal Leaf Specimen Capture</strong>
                     <p className="text-[#404945] mt-0.5">
-                      Open{' '}
-                      <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#1b6d24] font-bold underline inline-flex items-center gap-0.5"
-                      >
-                        Google AI Studio API Keys <ExternalLink className="w-3 h-3" />
-                      </a>
-                      , sign in with your Google account, and click <strong>Create API Key</strong>. It's free and takes seconds.
+                      Capture a photo or upload a leaf specimen. Images are automatically compressed client-side for rapid transmission on low-bandwidth rural networks.
                     </p>
                   </div>
                 </div>
@@ -294,9 +161,9 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
                     2
                   </span>
                   <div>
-                    <strong>Step 2: Connect the Key in This App</strong>
+                    <strong>Step 2: Server-Side Vision & Audio Processing</strong>
                     <p className="text-[#404945] mt-0.5">
-                      Paste the key in the input box above and click <strong>Test</strong> then <strong>Save</strong>. The key is securely passed to the backend proxy router to execute Gemini Vision requests without exposing credentials.
+                      Requests are processed securely on the backend server with automatic failover to the built-in localized agronomy knowledge engine.
                     </p>
                   </div>
                 </div>
@@ -308,7 +175,7 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
                   <div>
                     <strong>Step 3: High Precision Vision Diagnostics</strong>
                     <p className="text-[#404945] mt-0.5">
-                      When you take or upload a crop photo, the model analyzes foliar lesions, spot margins, chlorosis, and pest traits, generating a complete chemical and organic prescription rendered purely in your selected language!
+                      The model analyzes foliar lesions, spot margins, chlorosis, and pest traits, generating a complete chemical and organic prescription rendered purely in your selected language.
                     </p>
                   </div>
                 </div>
