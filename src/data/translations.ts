@@ -136,7 +136,7 @@ export interface TranslationDictionary {
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {
   en: {
     appName: 'FARM',
-    tagline: 'Fast Agricultural Recovery & Monitoring AI',
+    tagline: "Farmer's Advisory & Resource Module",
     fieldWeather: 'Field Weather',
     humidity: 'Humidity',
     soilMoisture: 'Soil Moisture',

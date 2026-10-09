@@ -17,6 +17,34 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+// Enable CORS for PWA scanners and PWABuilder
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// Serve Web App Manifest with exact MIME type and open CORS
+app.get(['/manifest.json', '/manifest.webmanifest'], (_req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const manifestFile = path.resolve(__dirname, 'public', 'manifest.json');
+  res.sendFile(manifestFile);
+});
+
+// Serve Service Worker with proper header and open CORS
+app.get('/sw.js', (_req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const swFile = path.resolve(__dirname, 'public', 'sw.js');
+  res.sendFile(swFile);
+});
+
 // Parse image payloads
 app.use(express.json({ limit: '35mb' }));
 
@@ -48,6 +76,42 @@ const LANG_NAMES: Record<string, string> = {
 // Candidate models for highest resilience & low latency
 const CANDIDATE_MODELS = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
 
+// Specialized Plant Health API: Plant.id (Kindwise Health Assessment)
+async function queryPlantIdHealth(cleanBase64: string, customApiKey?: string) {
+  const key = customApiKey || process.env.PLANT_ID_API_KEY;
+  if (!key) return null;
+
+  try {
+    const res = await fetch('https://api.plant.id/v3/health_assessment', {
+      method: 'POST',
+      headers: {
+        'Api-Key': key,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        images: [`data:image/jpeg;base64,${cleanBase64}`],
+        similar_images: true,
+      }),
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const diseaseSuggestions = data?.result?.disease?.suggestions || [];
+    if (diseaseSuggestions.length > 0) {
+      const top = diseaseSuggestions[0];
+      return {
+        diseaseName: top.name,
+        scientificPathogen: top.scientific_name || top.disease_details?.pathogen || '',
+        probability: Math.round((top.probability || 0.9) * 100),
+        rawDetails: top.disease_details,
+      };
+    }
+  } catch (err: any) {
+    console.warn('Plant.id health assessment query failed:', err.message);
+  }
+  return null;
+}
+
 // REST API: GET /api/samples
 app.get('/api/samples', (req, res) => {
   const lang = (req.query.lang as string) || 'en';
@@ -62,7 +126,9 @@ app.get('/api/ai-status', (_req, res) => {
     active: true,
     model: 'gemini-3.8-flash',
     hasKey: Boolean(process.env.GEMINI_API_KEY),
-    provider: 'Server-Side Diagnostic Engine',
+    provider: 'Hybrid Agricultural Diagnostic Pipeline',
+    hasPlantId: Boolean(process.env.PLANT_ID_API_KEY),
+    plantIdModel: 'Kindwise Plant.id v3 Health Assessment',
     supportedLanguages: ['en', 'hi', 'te', 'kn', 'ta'],
     fallbackEngines: ['gemini-3.1-flash-lite', 'localized-knowledge-engine']
   });
@@ -319,16 +385,31 @@ app.post('/api/diagnose', async (req, res) => {
       });
     }
 
-    // 2. Multimodal AI Analysis with Gemini Vision
+    // 2. Multimodal AI Analysis with Plant.id Verification + Gemini Vision
     const clientToUse = getGenAIClient(customApiKey) || defaultAi;
     let aiDiagnosis = null;
 
     if (clientToUse && (imageBase64 || cropHint)) {
       const cleanBase64 = imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, '') : '';
-      const prompt = `You are FARM (Fast Agricultural Recovery & Monitoring), an expert agronomist, crop pathologist, and entomologist for Indian agriculture.
+
+      // Check specialized plant pathology API (Plant.id Kindwise) if available
+      let verifiedPathology: any = null;
+      if (cleanBase64) {
+        verifiedPathology = await queryPlantIdHealth(cleanBase64);
+      }
+
+      const pathologyContext = verifiedPathology
+        ? `\nSPECIALIZED PLANT PATHOLOGY (Plant.id Kindwise Assessment):
+- Detected Pathology: "${verifiedPathology.diseaseName}"
+- Pathogen: "${verifiedPathology.scientificPathogen || 'Foliar Pathogen'}"
+- Initial Model Probability: ${verifiedPathology.probability}%
+Incorporate this verified diagnosis into your analysis, adapting all treatment protocols, Indian brands, and dosages to Indian agriculture.\n`
+        : '';
+
+      const prompt = `You are FARM (Farmer's Advisory & Resource Module), an expert agronomist, crop pathologist, and entomologist for Indian agriculture.
 Analyze the provided crop leaf or pest specimen image.
 TARGET LANGUAGE: "${targetLangName}" (Language code: "${lang}").
-
+${pathologyContext}
 CRITICAL REQUIREMENT:
 All output text values inside the JSON MUST be written EXCLUSIVELY and PURITY in ${targetLangName}.
 DO NOT mix languages or include English translations in brackets or slashes (e.g. write "టమాటా", NOT "Tomato / టమాటా").
@@ -434,7 +515,7 @@ Return valid JSON adhering to this exact schema:
                 aiDiagnosis = parsed;
                 return res.json({
                   success: true,
-                  source: modelName,
+                  source: verifiedPathology ? `Plant.id Kindwise + ${modelName}` : modelName,
                   diagnosis: aiDiagnosis
                 });
               }

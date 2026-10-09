@@ -3,6 +3,7 @@ import { Camera, Upload, Scan, CheckCircle2, ChevronRight, HelpCircle, Mic, Spar
 import { CropSample, SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
+import { QuickFarmingTips } from './QuickFarmingTips';
 
 interface ScannerHeroProps {
   currentLang: SupportedLanguage;
@@ -109,27 +110,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
   };
 
   return (
-    <section className="w-full space-y-5">
-      {/* Streamlined Mobile & Desktop Hero Banner */}
-      <div className={`p-4 sm:p-7 rounded-2xl border transition-all ${
-        highContrast 
-          ? 'bg-[#002b20] border-[#8abda9] text-white' 
-          : 'bg-[#1b4d3e] border-[#003629] text-white shadow-md'
-      }`}>
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#baeed9] text-[#002117] text-[11px] font-bold uppercase tracking-wider mb-2">
-            <Scan className="w-3.5 h-3.5" />
-            {t.heroBadge}
-          </div>
-          <h1 className="font-display text-xl sm:text-3xl font-extrabold tracking-tight text-white mb-1.5 leading-snug">
-            {t.heroTitle}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#baeed9] leading-relaxed max-w-2xl">
-            {t.heroDesc}
-          </p>
-        </div>
-      </div>
-
+    <section className="w-full space-y-4">
       {/* Main Scanner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
         {/* Left Side: Upload & Camera Viewport */}
@@ -198,17 +179,17 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                   <button
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={isAnalyzing}
-                    className="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-white border border-[#707974] text-[#003629] hover:bg-[#eef5ef] transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl bg-white border border-[#707974] text-[#003629] hover:bg-[#eef5ef] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
                   >
-                    <Camera className="w-3.5 h-3.5" />
+                    <Camera className="w-4 h-4" />
                     {t.retakePhoto}
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isAnalyzing}
-                    className="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-white border border-[#707974] text-[#003629] hover:bg-[#eef5ef] transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 min-h-[44px] py-2.5 px-3 text-xs sm:text-sm font-bold rounded-xl bg-white border border-[#707974] text-[#003629] hover:bg-[#eef5ef] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5"
                   >
-                    <Upload className="w-3.5 h-3.5" />
+                    <Upload className="w-4 h-4" />
                     {t.changeFile}
                   </button>
                 </div>
@@ -273,7 +254,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                   placeholder="e.g. Tomato, Paddy, Cotton"
                   value={cropHint}
                   onChange={(e) => setCropHint(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
                 />
               </div>
 
@@ -289,7 +270,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                       setIsVoiceModalOpen(true);
                     }}
                     title="Speak field notes"
-                    className="flex items-center gap-1 text-[11px] font-bold text-[#1b6d24] hover:text-[#165a1e] px-1.5 py-0.5 rounded hover:bg-[#eef5ef] transition-colors"
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#1b6d24] hover:text-[#165a1e] px-2 py-1 rounded-lg hover:bg-[#eef5ef] active:bg-[#e0ede2] transition-colors"
                   >
                     <Mic className="w-3.5 h-3.5 text-[#1b6d24]" />
                     <span>{t.micRecord}</span>
@@ -300,7 +281,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                   placeholder="e.g. Yellowing spots, curled margins"
                   value={fieldNotes}
                   onChange={(e) => setFieldNotes(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
                 />
               </div>
             </div>
@@ -393,6 +374,9 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Quick Farming Tips with Offline Caching */}
+      <QuickFarmingTips currentLang={currentLang} />
 
       {/* Audio speech-to-text transcription modal */}
       <VoiceTranscriberModal

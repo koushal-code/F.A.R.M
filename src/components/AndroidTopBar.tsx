@@ -8,7 +8,6 @@ import {
   Sparkles, 
   ChevronDown, 
   Check, 
-  Smartphone, 
   Cpu, 
   MapPin, 
   Droplets,
@@ -176,181 +175,153 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
           : 'bg-[#003629] text-white border-[#1b4d3e]'
       }`}>
         {/* Real-time Field Weather & Environmental Ticker Bar */}
-        <div className="bg-[#00261d] px-3.5 py-1.5 text-[11px] font-medium border-b border-white/10 flex flex-wrap items-center justify-between gap-2 text-[#baeed9]">
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Location & GPS Button */}
-            <div className="relative">
-              <button
-                onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
-                className="flex items-center gap-1 font-bold text-white hover:text-[#a0f399] transition-colors py-0.5"
-                title="Click to select or detect farm GPS location"
-              >
-                <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                <span className="truncate max-w-[110px] sm:max-w-[170px]">
-                  {regionalAddress?.displayName || weather?.locationName || currentRegion.name[currentLang]}
-                </span>
-                <ChevronDown className="w-2.5 h-2.5 text-[#8abda9]" />
-              </button>
-
-              {isLocationMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsLocationMenuOpen(false)} />
-                  <div className="absolute left-0 mt-1.5 w-64 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-3 py-1.5 text-[10px] font-black uppercase text-[#707974] border-b border-[#dde4de] flex items-center justify-between">
-                      <span>{t.fieldLocation}</span>
-                      <span className="text-[#1b6d24] font-bold">GNSS / GPS</span>
-                    </div>
-
-                    <button
-                      onClick={handleDetectGPS}
-                      className="w-full px-3 py-2 text-left text-xs font-bold text-[#1b6d24] hover:bg-[#eef5ef] flex items-center gap-2 transition-colors"
-                    >
-                      <Crosshair className="w-4 h-4 text-[#1b6d24]" />
-                      <span>{t.autoGps}</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsLocationMenuOpen(false);
-                        setIsGpsModalOpen(true);
-                      }}
-                      className="w-full px-3 py-2 text-left text-xs font-bold text-[#003629] hover:bg-[#eef5ef] flex items-center gap-2 border-b border-[#dde4de] transition-colors"
-                    >
-                      <Navigation className="w-4 h-4 text-emerald-600" />
-                      <span>{t.liveGpsTitle}</span>
-                      {isTrackingGps && (
-                        <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                      )}
-                    </button>
-
-                    <div className="px-3 py-1 text-[10px] font-bold text-[#707974] uppercase mt-1">
-                      Major Indian Agro Hubs
-                    </div>
-                    {REGION_PRESETS.map((reg) => (
-                      <button
-                        key={reg.id}
-                        onClick={() => {
-                          setCurrentRegion(reg);
-                          setRegionalAddress(null);
-                          setIsLocationMenuOpen(false);
-                        }}
-                        className={`w-full px-3 py-1.5 text-left text-xs font-semibold hover:bg-[#f4fbf4] flex items-center justify-between ${
-                          currentRegion.id === reg.id && !regionalAddress ? 'text-[#1b6d24] font-bold bg-[#eef5ef]' : ''
-                        }`}
-                      >
-                        <span>{reg.name[currentLang] || reg.name.en}</span>
-                        {currentRegion.id === reg.id && !regionalAddress && (
-                          <Check className="w-3.5 h-3.5 text-[#1b6d24]" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Live GPS tracking active pill */}
-            {isTrackingGps && (
-              <button
-                onClick={() => setIsGpsModalOpen(true)}
-                className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/40 animate-pulse"
-                title="Continuous Live GPS precision tracking active"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>GPS Live</span>
-              </button>
-            )}
-
-            {/* OpenWeatherMap Indicator */}
-            <div className="hidden lg:flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-[#baeed9] font-mono">
-              <CloudSun className="w-3 h-3 text-amber-300" />
-              <span>OWM Live</span>
-            </div>
-
-            {/* Temperature */}
-            <span className="flex items-center gap-1 text-amber-400 font-extrabold" title="Current Temperature (Influences pathogen incubation rate)">
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
-              {weather ? `${weather.temperature}°C` : '28°C'}
-            </span>
-
-            {/* Relative Humidity */}
-            <span className="flex items-center gap-1 font-semibold text-white" title="Current Relative Humidity (Crucial for fungal spore germination)">
-              <CloudRain className="w-3.5 h-3.5 text-[#a0f399]" />
-              <span className="text-[#a0f399] font-black">{weather ? `${weather.humidity}%` : '70%'}</span> {t.humidity}
-            </span>
-
-            {/* Soil Moisture */}
-            <span className="hidden md:flex items-center gap-1 font-semibold text-teal-300">
-              <Droplets className="w-3 h-3" />
-              {weather ? `${weather.soilMoisture}%` : '35%'} {t.soilMoisture}
-            </span>
-
-            {/* Wind Speed */}
-            <span className="hidden sm:flex items-center gap-1 font-semibold text-[#baeed9]">
-              <Wind className="w-3 h-3 text-teal-300" />
-              {weather ? `${weather.windSpeed} km/h` : '6 km/h'}
-            </span>
-          </div>
-
-          {/* Dynamic Agricultural Spray Window & Live GPS Button */}
-          <div className="flex items-center gap-1.5">
+        <div className="bg-[#00261d] px-3 sm:px-4 py-1.5 text-[11px] font-medium border-b border-white/10 flex items-center justify-between gap-2 text-[#baeed9]">
+          {/* Location & GPS Button */}
+          <div className="relative flex items-center min-w-0">
             <button
-              onClick={() => setIsGpsModalOpen(true)}
-              className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white font-bold transition-colors"
-              title="Open Live GPS Tracking & Regional Precision view"
+              onClick={() => setIsLocationMenuOpen(!isLocationMenuOpen)}
+              className="flex items-center gap-1 font-bold text-white hover:text-[#a0f399] transition-colors py-0.5 truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[260px]"
+              title="Click to select or detect farm GPS location"
             >
-              <Navigation className="w-3 h-3 text-[#a0f399]" />
-              <span className="hidden xs:inline">{t.regionalPrecision}</span>
+              <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              <span className="truncate">
+                {regionalAddress?.displayName || weather?.locationName || currentRegion.name[currentLang]}
+              </span>
+              <ChevronDown className="w-2.5 h-2.5 text-[#8abda9] flex-shrink-0" />
             </button>
 
-            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider ${
-              weather?.sprayCondition === 'wind_alert' || weather?.sprayCondition === 'rain_alert'
-                ? 'bg-[#ffdad6] text-[#ba1a1a]'
-                : weather?.sprayCondition === 'humidity_alert'
-                  ? 'bg-[#ffdbcf] text-[#7d2800]'
-                  : 'bg-[#a0f399] text-[#003629]'
-            }`}>
-              <Sparkles className="w-2.5 h-2.5" />
-              {weather?.sprayConditionText || t.optimalSpray}
+            {isLocationMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsLocationMenuOpen(false)} />
+                <div className="absolute left-0 top-full mt-1.5 w-64 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1.5 text-[10px] font-black uppercase text-[#707974] border-b border-[#dde4de] flex items-center justify-between">
+                    <span>{t.fieldLocation}</span>
+                    <span className="text-[#1b6d24] font-bold">GNSS / GPS</span>
+                  </div>
+
+                  <button
+                    onClick={handleDetectGPS}
+                    className="w-full px-3 py-2 text-left text-xs font-bold text-[#1b6d24] hover:bg-[#eef5ef] flex items-center gap-2 transition-colors"
+                  >
+                    <Crosshair className="w-4 h-4 text-[#1b6d24]" />
+                    <span>{t.autoGps}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsLocationMenuOpen(false);
+                      setIsGpsModalOpen(true);
+                    }}
+                    className="w-full px-3 py-2 text-left text-xs font-bold text-[#003629] hover:bg-[#eef5ef] flex items-center gap-2 border-b border-[#dde4de] transition-colors"
+                  >
+                    <Navigation className="w-4 h-4 text-emerald-600" />
+                    <span>{t.liveGpsTitle}</span>
+                    {isTrackingGps && (
+                      <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                    )}
+                  </button>
+
+                  <div className="px-3 py-1 text-[10px] font-bold text-[#707974] uppercase mt-1">
+                    Major Indian Agro Hubs
+                  </div>
+                  {REGION_PRESETS.map((reg) => (
+                    <button
+                      key={reg.id}
+                      onClick={() => {
+                        setCurrentRegion(reg);
+                        setRegionalAddress(null);
+                        setIsLocationMenuOpen(false);
+                      }}
+                      className={`w-full px-3 py-1.5 text-left text-xs font-semibold hover:bg-[#f4fbf4] flex items-center justify-between ${
+                        currentRegion.id === reg.id && !regionalAddress ? 'text-[#1b6d24] font-bold bg-[#eef5ef]' : ''
+                      }`}
+                    >
+                      <span>{reg.name[currentLang] || reg.name.en}</span>
+                      {currentRegion.id === reg.id && !regionalAddress && (
+                        <Check className="w-3.5 h-3.5 text-[#1b6d24]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Environmental Metrics (Single Line on Mobile) */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Live GPS status */}
+            {isTrackingGps && (
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/40 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="hidden xs:inline">GPS Live</span>
+              </span>
+            )}
+
+            {/* Temperature */}
+            <span className="flex items-center gap-1 text-amber-400 font-extrabold text-xs" title="Current Temperature">
+              <Sun className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              <span>{weather ? `${weather.temperature}°C` : '28°C'}</span>
             </span>
+
+            {/* Humidity */}
+            <span className="hidden xs:flex items-center gap-1 text-xs font-semibold text-white" title="Relative Humidity">
+              <CloudRain className="w-3.5 h-3.5 text-[#a0f399] flex-shrink-0" />
+              <span className="text-[#a0f399] font-bold">{weather ? `${weather.humidity}%` : '70%'}</span>
+            </span>
+
+            {/* Spray Window Status Badge */}
+            <button
+              onClick={() => setIsGpsModalOpen(true)}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider transition-opacity hover:opacity-90 ${
+                weather?.sprayCondition === 'wind_alert' || weather?.sprayCondition === 'rain_alert'
+                  ? 'bg-[#ffdad6] text-[#ba1a1a]'
+                  : weather?.sprayCondition === 'humidity_alert'
+                    ? 'bg-[#ffdbcf] text-[#7d2800]'
+                    : 'bg-[#a0f399] text-[#003629]'
+              }`}
+              title="Click to view detailed agro-weather and GPS parameters"
+            >
+              <Sparkles className="w-2.5 h-2.5 flex-shrink-0" />
+              <span className="truncate max-w-[85px] sm:max-w-none">{weather?.sprayConditionText || t.optimalSpray}</span>
+            </button>
           </div>
         </div>
 
         {/* Main App Bar Controls */}
-        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2.5">
           {/* App Title & Branding */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#1b4d3e] text-[#a0f399] flex items-center justify-center border border-[#a0f399]/40 shadow-inner flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#1b4d3e] text-[#a0f399] flex items-center justify-center border border-[#a0f399]/40 shadow-xs flex-shrink-0">
               <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-display text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="font-display text-base sm:text-xl font-black tracking-tight text-white">
                   FARM
                 </span>
-                <span className="px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] font-bold bg-[#a0f399] text-[#003629]">
+                <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-[#a0f399] text-[#003629]">
                   AI
                 </span>
               </div>
-              <p className="text-[9px] sm:text-[10px] text-[#8abda9] font-medium leading-none line-clamp-1">
+              <p className="text-[10px] text-[#8abda9] font-medium leading-tight truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none mt-0.5">
                 {t.tagline}
               </p>
             </div>
           </div>
 
-          {/* Action Controls: Live GPS, AI Engine, Flutter Export (Clean icon or hidden on tiny screens), Language & Sunlight Mode */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Action Controls: Live GPS, AI Engine, Language */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {/* Live GPS Quick Button */}
             <button
               onClick={() => setIsGpsModalOpen(true)}
               title="Live GPS Satellite Tracking"
-              className={`p-2 rounded-lg text-xs font-bold border transition-all ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs font-bold border transition-all ${
                 isTrackingGps
                   ? 'bg-emerald-500 text-white border-emerald-400 shadow-sm animate-pulse'
                   : 'bg-[#1b4d3e] hover:bg-[#256653] text-[#a0f399] border-white/20'
               }`}
             >
-              <Navigation className="w-3.5 h-3.5" />
+              <Navigation className="w-4 h-4" />
             </button>
 
             {/* AI Vision Engine Status */}
@@ -358,24 +329,11 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
               <button
                 onClick={onOpenAiSetup}
                 title="Gemini AI Vision Engine & Audio Setup"
-                className="flex items-center gap-1.5 p-2 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-sm transition-all"
+                className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
               >
-                <div className="w-2 h-2 rounded-full bg-[#a0f399] animate-pulse" />
-                <Cpu className="w-3.5 h-3.5 text-[#a0f399]" />
-                <span className="hidden md:inline">{t.aiEngine}</span>
-              </button>
-            )}
-
-            {/* Flutter Code Button: compact icon button so it's not disturbing on mobile, with clean tooltip */}
-            {onOpenFlutterExport && (
-              <button
-                onClick={onOpenFlutterExport}
-                title={t.flutterCodeExplanation}
-                className="flex items-center gap-1 p-2 sm:px-2.5 sm:py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#a0f399] text-xs font-bold border border-white/15 transition-all"
-                aria-label="Flutter Offline APK Code"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline text-[11px] text-white">Flutter Edge</span>
+                <div className="w-2 h-2 rounded-full bg-[#a0f399] animate-pulse flex-shrink-0" />
+                <Cpu className="w-4 h-4 text-[#a0f399]" />
+                <span className="hidden md:inline font-semibold">{t.aiEngine}</span>
               </button>
             )}
 
@@ -383,18 +341,18 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-sm"
+                className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
                 aria-label="Select Indian Language"
               >
-                <Globe className="w-3.5 h-3.5 text-[#a0f399]" />
-                <span className="text-xs uppercase">{currentLang}</span>
+                <Globe className="w-4 h-4 text-[#a0f399]" />
+                <span className="text-xs uppercase font-extrabold">{currentLang}</span>
                 <ChevronDown className="w-2.5 h-2.5 text-[#8abda9]" />
               </button>
 
               {isLangMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsLangMenuOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#707974] border-b border-[#dde4de]">
                       Language
                     </div>
@@ -424,20 +382,6 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
                 </>
               )}
             </div>
-
-            {/* High sunlight contrast toggle */}
-            <button
-              onClick={onToggleHighContrast}
-              title={highContrast ? t.standardContrast : t.highContrast}
-              className={`p-2 rounded-lg border transition-all ${
-                highContrast
-                  ? 'bg-amber-400 text-black border-amber-300'
-                  : 'bg-[#1b4d3e] text-white/90 border-white/20 hover:text-white hover:bg-[#256653]'
-              }`}
-              aria-label="Toggle outdoor sunlight mode"
-            >
-              <Sun className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
       </header>

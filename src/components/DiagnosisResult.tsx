@@ -121,40 +121,40 @@ ${diagnosis.treatmentPlan.organicSolutions.map(o => o.name).join(', ')}`;
   return (
     <div className="w-full space-y-6 print:space-y-4">
       {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#c0c9c3] shadow-sm print:hidden">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-4 rounded-xl border border-[#c0c9c3] shadow-xs print:hidden">
+        <div className="flex items-center justify-between sm:justify-start gap-2.5">
           <button
             onClick={onReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#707974] text-xs font-bold text-[#003629] hover:bg-[#eef5ef] transition-colors"
+            className="min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#707974] text-xs font-bold text-[#003629] hover:bg-[#eef5ef] active:bg-[#e0ede2] transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            {t.scanAnother}
+            <span>{t.scanAnother}</span>
           </button>
-          <span className="text-xs text-[#707974]">|</span>
-          <span className="text-xs font-bold text-[#003629]">
-            {t.confidence}: {diagnosis.confidenceScore}%
-          </span>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[#003629]">
+            <span className="text-[#707974] hidden sm:inline">|</span>
+            <span>{t.confidence}: {diagnosis.confidenceScore}%</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Audio speech button */}
           <button
             onClick={handleToggleAudio}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex-1 sm:flex-none min-h-[38px] flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
               isPlayingAudio
                 ? 'bg-[#ba1a1a] text-white animate-pulse'
-                : 'bg-[#1b4d3e] text-white hover:bg-[#256653]'
+                : 'bg-[#1b4d3e] text-white hover:bg-[#256653] active:bg-[#00261d]'
             }`}
           >
             {isPlayingAudio ? (
               <>
                 <VolumeX className="w-4 h-4 text-white" />
-                {t.stopAudio}
+                <span>{t.stopAudio}</span>
               </>
             ) : (
               <>
                 <Volume2 className="w-4 h-4 text-[#a0f399]" />
-                {t.listenPrescription}
+                <span className="truncate max-w-[130px] sm:max-w-none">{t.listenPrescription}</span>
               </>
             )}
           </button>
@@ -162,16 +162,16 @@ ${diagnosis.treatmentPlan.organicSolutions.map(o => o.name).join(', ')}`;
           {/* Copy slip button */}
           <button
             onClick={handleCopyPrescription}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border border-[#c0c9c3] bg-white text-[#003629] hover:bg-[#eef5ef]"
+            className="min-h-[38px] flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border border-[#c0c9c3] bg-white text-[#003629] hover:bg-[#eef5ef] active:bg-[#e0ede2] transition-colors"
           >
             {copiedPrescription ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-            {copiedPrescription ? t.copied : t.share}
+            <span>{copiedPrescription ? t.copied : t.share}</span>
           </button>
 
           {/* Print button */}
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border border-[#c0c9c3] bg-white text-[#003629] hover:bg-[#eef5ef]"
+            className="min-h-[38px] flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-bold border border-[#c0c9c3] bg-white text-[#003629] hover:bg-[#eef5ef] active:bg-[#e0ede2] transition-colors"
           >
             <Printer className="w-4 h-4" />
             <span className="hidden sm:inline">{t.printReport}</span>

@@ -18,12 +18,16 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
     model: string;
     hasKey: boolean;
     provider: string;
+    hasPlantId?: boolean;
+    plantIdModel?: string;
     fallbackEngines?: string[];
   }>({
     active: true,
     model: 'gemini-3.8-flash',
     hasKey: true,
-    provider: 'Server-Side Diagnostic Engine',
+    provider: 'Hybrid Agricultural Diagnostic Pipeline',
+    hasPlantId: false,
+    plantIdModel: 'Kindwise Plant.id v3 Health Assessment',
   });
   const [testing, setTesting] = useState(false);
 
@@ -112,26 +116,29 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
         {/* Content */}
         <div className="p-6 space-y-5 overflow-y-auto">
           {/* Status Badge Card */}
-          <div className="p-4 rounded-xl bg-[#eef5ef] border border-[#a0f399] flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#eef5ef] border border-[#a0f399] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-6 h-6 text-[#1b6d24] flex-shrink-0" />
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-[#1b6d24] block">
-                  Engine Status: Active & Operational
+                  {status.provider}
                 </span>
                 <span className="font-display text-sm font-bold text-[#003629]">
-                  Model: {status.model}
+                  Primary: {status.model}
                 </span>
+                <p className="text-[11px] text-[#404945] mt-0.5">
+                  Specialized Pathogen API: {status.hasPlantId ? 'Kindwise Plant.id (Connected)' : 'Kindwise Plant.id (Optional Hybrid)'}
+                </p>
               </div>
             </div>
 
             <button
               onClick={testConnection}
               disabled={testing}
-              className="px-3 py-1.5 rounded-lg bg-[#003629] hover:bg-[#1b4d3e] text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-2 rounded-lg bg-[#003629] hover:bg-[#1b4d3e] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all flex-shrink-0"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
-              Verify
+              Verify Pipeline
             </button>
           </div>
 

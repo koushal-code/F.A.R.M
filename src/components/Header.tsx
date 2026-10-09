@@ -135,20 +135,6 @@ export const Header: React.FC<HeaderProps> = ({
               </select>
             </div>
           </div>
-
-          {/* High sunlight contrast toggle */}
-          <button
-            onClick={onToggleHighContrast}
-            title={highContrast ? t.standardContrast : t.highContrast}
-            className={`p-2 rounded-lg border transition-all ${
-              highContrast
-                ? 'bg-amber-400 text-black border-amber-300'
-                : 'bg-white text-[#404945] border-[#c0c9c3] hover:text-[#003629]'
-            }`}
-            aria-label="Toggle outdoor sunlight mode"
-          >
-            <Sun className="w-4 h-4" />
-          </button>
         </div>
       </div>
     </header>

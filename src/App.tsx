@@ -209,7 +209,7 @@ export default function App() {
         onOpenAiSetup={() => setIsAiModalOpen(true)}
       />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-6 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-3.5 sm:py-6 pb-28 sm:pb-32 space-y-4 sm:space-y-6">
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a] flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 font-bold">
