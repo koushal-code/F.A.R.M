@@ -1,9 +1,15 @@
-import React, { useRef, useState } from 'react';
-import { Camera, Upload, Scan, CheckCircle2, ChevronRight, HelpCircle, Mic, Sparkles, Image as ImageIcon } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { 
+  Camera, Upload, Scan, CheckCircle2, ChevronRight, HelpCircle, Mic, Sparkles, Image as ImageIcon,
+  AlertTriangle, CloudRain, Droplets, Wind, Sun, MapPin, RefreshCw, ShieldAlert, ShieldCheck,
+  ChevronDown, ChevronUp, AlertCircle, Compass
+} from 'lucide-react';
 import { CropSample, SupportedLanguage, FarmerProfile } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
 import { QuickFarmingTips } from './QuickFarmingTips';
+import { fetchLiveWeather, RealtimeWeather, REGION_PRESETS } from '../services/weatherService';
+import { reverseGeocodeCoords } from '../services/gpsService';
 
 interface ScannerHeroProps {
   currentLang: SupportedLanguage;
@@ -92,6 +98,122 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
   const [voiceTarget, setVoiceTarget] = useState<'cropHint' | 'notes'>('notes');
 
+  // Weather & Agronomic Warning State
+  const [weather, setWeather] = useState<RealtimeWeather | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState<boolean>(true);
+  const [isLocatingGps, setIsLocatingGps] = useState<boolean>(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<{ lat: number; lon: number }>({ lat: 17.3850, lon: 78.4867 });
+  const [locationLabel, setLocationLabel] = useState<string>('Hyderabad (Telangana)');
+  const [selectedRegionId, setSelectedRegionId] = useState<string>('gps');
+  const [simulateMode, setSimulateMode] = useState<'none' | 'humidity' | 'rain' | 'wind'>('none');
+  const [isWarningExpanded, setIsWarningExpanded] = useState<boolean>(true);
+
+  // Load weather data
+  const loadWeatherData = async (
+    lat: number,
+    lon: number,
+    label: string,
+    simMode: 'none' | 'humidity' | 'rain' | 'wind' = simulateMode
+  ) => {
+    setIsLoadingWeather(true);
+    setWeatherError(null);
+    try {
+      const modeToPass = simMode === 'none' ? undefined : simMode;
+      const data = await fetchLiveWeather(lat, lon, label, currentLang, modeToPass);
+      setWeather(data);
+    } catch (err: any) {
+      console.error('Weather load error:', err);
+      setWeatherError('Unable to load real-time meteorological data.');
+    } finally {
+      setIsLoadingWeather(false);
+    }
+  };
+
+  // Detect GPS geolocation using browser API
+  const handleDetectGps = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setWeatherError('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsLocatingGps(true);
+    setSelectedRegionId('gps');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setCurrentCoords({ lat: latitude, lon: longitude });
+        let resolvedName = `${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E`;
+        try {
+          const addr = await reverseGeocodeCoords(latitude, longitude);
+          if (addr?.displayName) {
+            resolvedName = addr.district 
+              ? `${addr.district}, ${addr.state || ''}`.trim()
+              : addr.displayName;
+          }
+        } catch (_e) {
+          // ignore
+        }
+        setLocationLabel(resolvedName);
+        await loadWeatherData(latitude, longitude, resolvedName, simulateMode);
+        setIsLocatingGps(false);
+      },
+      async (err) => {
+        console.warn('Geolocation permission/access warning:', err.message);
+        // Fallback to default or farmer profile location
+        const fallbackLat = 17.3850;
+        const fallbackLon = 78.4867;
+        const fallbackLabel = farmerProfile?.district 
+          ? `${farmerProfile.district}, ${farmerProfile.state || ''}`
+          : 'Hyderabad (Telangana)';
+        setCurrentCoords({ lat: fallbackLat, lon: fallbackLon });
+        setLocationLabel(fallbackLabel);
+        await loadWeatherData(fallbackLat, fallbackLon, fallbackLabel, simulateMode);
+        setIsLocatingGps(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  };
+
+  // Region preset change
+  const handlePresetChange = (presetId: string) => {
+    setSelectedRegionId(presetId);
+    if (presetId === 'gps') {
+      handleDetectGps();
+      return;
+    }
+
+    const preset = REGION_PRESETS.find((p) => p.id === presetId);
+    if (preset) {
+      const label = preset.name[currentLang] || preset.name.en;
+      setCurrentCoords({ lat: preset.lat, lon: preset.lon });
+      setLocationLabel(label);
+      loadWeatherData(preset.lat, preset.lon, label, simulateMode);
+    }
+  };
+
+  // Simulation mode change (allows testing high humidity or rain warnings on demand)
+  const handleSimulationChange = (mode: 'none' | 'humidity' | 'rain' | 'wind') => {
+    setSimulateMode(mode);
+    loadWeatherData(currentCoords.lat, currentCoords.lon, locationLabel, mode);
+  };
+
+  // Initial load on mount or language change
+  useEffect(() => {
+    // If we're already on a preset, reload with current language label
+    if (selectedRegionId !== 'gps') {
+      const preset = REGION_PRESETS.find((p) => p.id === selectedRegionId);
+      if (preset) {
+        const label = preset.name[currentLang] || preset.name.en;
+        loadWeatherData(preset.lat, preset.lon, label, simulateMode);
+        return;
+      }
+    }
+
+    // Try GPS detection first on startup
+    handleDetectGps();
+  }, [currentLang]);
+
   const handleProcessFile = async (file: File) => {
     try {
       const optimizedBase64 = await resizeImageFile(file);
@@ -129,7 +251,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
         <div className="bg-gradient-to-r from-[#003629] via-[#004838] to-[#1b4d3e] text-white p-3.5 sm:p-4 rounded-2xl border border-[#a0f399]/40 shadow-sm flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-sm shadow-xs flex-shrink-0">
-              {farmerProfile.name ? farmerProfile.name.charAt(0).toUpperCase() : 'F'}
+              {farmerProfile.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -166,11 +288,429 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               onClick={onOpenProfileModal}
               className="px-2.5 py-1.5 rounded-xl bg-[#a0f399] hover:bg-[#8ee587] text-[#003629] text-[11px] font-extrabold transition-all active:scale-95 shadow-xs"
             >
-              Farmer Profile
+              Farm Settings
             </button>
           </div>
         </div>
       )}
+
+      {/* Weather Warning & Agronomic Disease Risk Monitor */}
+      <div className={`rounded-2xl border transition-all overflow-hidden shadow-sm ${
+        highContrast
+          ? 'bg-[#002117] border-white/40 text-white'
+          : weather?.diseaseWarning?.hasWarning
+            ? weather.diseaseWarning.severity === 'critical'
+              ? 'bg-[#fff5f5] border-red-300 text-[#3b0a0a]'
+              : weather.diseaseWarning.warningType === 'heavy_rain'
+                ? 'bg-[#f0f7ff] border-blue-300 text-[#0c284d]'
+                : weather.diseaseWarning.warningType === 'high_humidity'
+                  ? 'bg-[#fffbf0] border-amber-300 text-[#422900]'
+                  : 'bg-[#f0faf7] border-teal-300 text-[#063327]'
+            : 'bg-white border-[#c0c9c3] text-[#161d19]'
+      }`}>
+        {/* Top Header Bar */}
+        <div className={`p-3.5 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+          weather?.diseaseWarning?.hasWarning
+            ? weather.diseaseWarning.severity === 'critical'
+              ? 'bg-red-500/10 border-red-200'
+              : weather.diseaseWarning.warningType === 'heavy_rain'
+                ? 'bg-blue-500/10 border-blue-200'
+                : weather.diseaseWarning.warningType === 'high_humidity'
+                  ? 'bg-amber-500/10 border-amber-200'
+                  : 'bg-teal-500/10 border-teal-200'
+            : 'bg-[#e8f0e9]/50 border-[#dde4de]'
+        }`}>
+          {/* Left: Status Badge & Title */}
+          <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+            {weather?.diseaseWarning?.hasWarning ? (
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-xs ${
+                weather.diseaseWarning.severity === 'critical'
+                  ? 'bg-red-600 text-white animate-pulse'
+                  : weather.diseaseWarning.warningType === 'heavy_rain'
+                    ? 'bg-blue-600 text-white'
+                    : weather.diseaseWarning.warningType === 'high_humidity'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-teal-600 text-white'
+              }`}>
+                {weather.diseaseWarning.warningType === 'heavy_rain' ? (
+                  <CloudRain className="w-4 h-4 stroke-[2.5]" />
+                ) : weather.diseaseWarning.warningType === 'high_humidity' ? (
+                  <Droplets className="w-4 h-4 stroke-[2.5]" />
+                ) : weather.diseaseWarning.warningType === 'high_wind' ? (
+                  <Wind className="w-4 h-4 stroke-[2.5]" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 stroke-[2.5]" />
+                )}
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded-xl bg-[#1b6d24] text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+              </div>
+            )}
+
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                  weather?.diseaseWarning?.hasWarning
+                    ? weather.diseaseWarning.severity === 'critical'
+                      ? 'bg-red-600 text-white'
+                      : weather.diseaseWarning.warningType === 'heavy_rain'
+                        ? 'bg-blue-700 text-white'
+                        : weather.diseaseWarning.warningType === 'high_humidity'
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-teal-700 text-white'
+                    : 'bg-[#1b6d24] text-white'
+                }`}>
+                  {weather?.diseaseWarning?.badgeLabel || 'Weather & Disease Risk Monitor'}
+                </span>
+
+                <span className="text-[10px] text-[#56605b] font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {weather?.source || 'OpenWeatherMap'}
+                </span>
+              </div>
+
+              <h4 className="font-display text-xs sm:text-sm font-bold mt-0.5 flex items-center gap-1.5">
+                {weather?.diseaseWarning?.headline || 'Real-time Meteorological Health Intelligence'}
+              </h4>
+            </div>
+          </div>
+
+          {/* Right: GPS Location & Region Controls */}
+          <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+            {/* Location selector dropdown */}
+            <div className="relative">
+              <select
+                value={selectedRegionId}
+                onChange={(e) => handlePresetChange(e.target.value)}
+                className="text-[11px] font-bold py-1.5 pl-2.5 pr-6 rounded-xl border border-[#c0c9c3] bg-white text-[#003629] focus:outline-none focus:border-[#1b6d24] appearance-none cursor-pointer shadow-2xs"
+              >
+                <option value="gps">📍 {isLocatingGps ? 'Locating GPS...' : `GPS: ${locationLabel.slice(0, 16)}...`}</option>
+                {REGION_PRESETS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name[currentLang] || p.name.en}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3 h-3 text-[#707974] absolute right-2 top-2.5 pointer-events-none" />
+            </div>
+
+            {/* GPS Locate Button */}
+            <button
+              type="button"
+              onClick={handleDetectGps}
+              disabled={isLocatingGps || isLoadingWeather}
+              title="Detect live GPS coordinates and local weather"
+              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#003629] text-white hover:bg-[#1b4d3e] text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 shadow-2xs disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-[#a0f399] ${isLocatingGps || isLoadingWeather ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">GPS</span>
+            </button>
+
+            {/* Toggle collapse/expand */}
+            <button
+              type="button"
+              onClick={() => setIsWarningExpanded(!isWarningExpanded)}
+              className="p-1.5 rounded-xl text-[#707974] hover:bg-black/5 transition-colors"
+              aria-label="Toggle details"
+            >
+              {isWarningExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Weather Metrics & Risk Details Body */}
+        {isWarningExpanded && (
+          <div className="p-3.5 sm:p-5 space-y-4">
+            {/* Live Weather Parameter Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+              {/* Temperature */}
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gradient-to-br from-white to-amber-50/40 border border-amber-200/70 shadow-2xs flex flex-col justify-between transition-all hover:shadow-xs">
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-[10px] text-[#56605b] font-bold uppercase tracking-wider">
+                    Temperature
+                  </span>
+                  <div className="w-6 h-6 rounded-lg bg-amber-100/80 text-amber-700 flex items-center justify-center flex-shrink-0">
+                    <Sun className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between gap-1">
+                  <span className="font-display text-base sm:text-lg font-black text-[#161d19]">
+                    {weather ? `${weather.temperature}°C` : '--'}
+                  </span>
+                  <span className="text-[10px] text-[#707974] font-medium">
+                    {weather ? `Feels ${weather.apparentTemperature}°` : ''}
+                  </span>
+                </div>
+              </div>
+
+              {/* Humidity with Alert Highlight */}
+              <div className={`p-2.5 sm:p-3 rounded-xl border shadow-2xs flex flex-col justify-between transition-all hover:shadow-xs ${
+                (weather?.humidity ?? 0) >= 80
+                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300 ring-1 ring-amber-400/50'
+                  : 'bg-gradient-to-br from-white to-blue-50/30 border-blue-200/70'
+              }`}>
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-[10px] text-[#56605b] font-bold uppercase tracking-wider">
+                    Humidity
+                  </span>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    (weather?.humidity ?? 0) >= 80
+                      ? 'bg-amber-500 text-white font-bold animate-pulse'
+                      : 'bg-blue-100/80 text-blue-700'
+                  }`}>
+                    <Droplets className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between gap-1">
+                  <span className={`font-display text-base sm:text-lg font-black ${
+                    (weather?.humidity ?? 0) >= 80 ? 'text-amber-950 font-black' : 'text-[#161d19]'
+                  }`}>
+                    {weather ? `${weather.humidity}%` : '--'}
+                  </span>
+                  {(weather?.humidity ?? 0) >= 80 ? (
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                      Spore Alert
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-emerald-700 font-semibold">
+                      Normal
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Precipitation / Rain with Alert Highlight */}
+              <div className={`p-2.5 sm:p-3 rounded-xl border shadow-2xs flex flex-col justify-between transition-all hover:shadow-xs ${
+                (weather?.rainAmount ?? 0) > 0 || weather?.conditionText.toLowerCase().includes('rain')
+                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 ring-1 ring-blue-400/50'
+                  : 'bg-gradient-to-br from-white to-emerald-50/30 border-emerald-200/70'
+              }`}>
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-[10px] text-[#56605b] font-bold uppercase tracking-wider">
+                    Rainfall
+                  </span>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    (weather?.rainAmount ?? 0) > 0 || weather?.conditionText.toLowerCase().includes('rain')
+                      ? 'bg-blue-600 text-white font-bold'
+                      : 'bg-emerald-100/80 text-emerald-700'
+                  }`}>
+                    <CloudRain className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between gap-1">
+                  <span className={`font-display text-base sm:text-lg font-black truncate ${
+                    (weather?.rainAmount ?? 0) > 0 || weather?.conditionText.toLowerCase().includes('rain')
+                      ? 'text-blue-950'
+                      : 'text-[#161d19]'
+                  }`}>
+                    {weather?.rainAmount && weather.rainAmount > 0 
+                      ? `${weather.rainAmount} mm` 
+                      : (weather?.conditionText.toLowerCase().includes('rain') ? 'Raining' : '0.0 mm')}
+                  </span>
+                  {(weather?.rainAmount ?? 0) > 0 || weather?.conditionText.toLowerCase().includes('rain') ? (
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-900">
+                      Washout
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-emerald-700 font-semibold">
+                      Dry Leaf
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Wind Speed */}
+              <div className={`p-2.5 sm:p-3 rounded-xl border shadow-2xs flex flex-col justify-between transition-all hover:shadow-xs ${
+                (weather?.windSpeed ?? 0) > 15
+                  ? 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-300 ring-1 ring-teal-400/50'
+                  : 'bg-gradient-to-br from-white to-teal-50/30 border-teal-200/70'
+              }`}>
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="text-[10px] text-[#56605b] font-bold uppercase tracking-wider">
+                    Wind Speed
+                  </span>
+                  <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    (weather?.windSpeed ?? 0) > 15
+                      ? 'bg-teal-600 text-white font-bold'
+                      : 'bg-teal-100/80 text-teal-700'
+                  }`}>
+                    <Wind className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="flex items-baseline justify-between gap-1">
+                  <span className="font-display text-base sm:text-lg font-black text-[#161d19]">
+                    {weather ? `${weather.windSpeed}` : '--'}<span className="text-xs font-bold text-[#707974] ml-0.5">km/h</span>
+                  </span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                    (weather?.windSpeed ?? 0) > 15
+                      ? 'bg-teal-200 text-teal-900'
+                      : 'text-emerald-700 bg-emerald-50'
+                  }`}>
+                    {(weather?.windSpeed ?? 0) > 15 ? 'Drift Alert' : 'Calm'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Weather Warning Agronomic Advisory Card (Active when risk detected) */}
+            {weather?.diseaseWarning?.hasWarning ? (
+              <div className="p-2.5 sm:p-3 rounded-lg bg-white/95 border border-current/20 space-y-2 shadow-2xs">
+                {/* Summary narrative */}
+                <p className="text-[11px] sm:text-xs font-medium leading-relaxed">
+                  {weather.diseaseWarning.summary}
+                </p>
+
+                {/* Pathogen Threat Badges */}
+                {weather.diseaseWarning.pathogenThreats?.length > 0 && (
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-[#707974] block mb-1">
+                      ⚠️ High-Risk Foliar Pathogens Under Current Conditions:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {weather.diseaseWarning.pathogenThreats.map((threat, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded text-[10px] font-bold bg-black/5 border border-black/10 text-current flex items-center gap-1"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                          {threat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Immediate Action Steps */}
+                {weather.diseaseWarning.actionSteps?.length > 0 && (
+                  <div>
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-[#707974] block mb-1">
+                      📋 Critical Farm Management Directives:
+                    </span>
+                    <ul className="space-y-1 text-[11px]">
+                      {weather.diseaseWarning.actionSteps.map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="w-3.5 h-3.5 rounded-full bg-black/10 text-current text-[9px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">
+                            {idx + 1}
+                          </span>
+                          <span className="font-medium leading-tight">{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Spray Protocol Banner */}
+                <div className={`p-1.5 sm:p-2 rounded-lg text-[11px] font-bold flex items-center justify-between gap-2 ${
+                  weather.diseaseWarning.sprayRecommendation === 'danger_washoff' || weather.diseaseWarning.sprayRecommendation === 'hold_spray'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-amber-600 text-white'
+                }`}>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">{weather.diseaseWarning.sprayAdviceText}</span>
+                  </div>
+                  <span className="text-[8px] px-1.5 py-0.5 rounded bg-white/20 uppercase font-black flex-shrink-0">
+                    Spray Protocol
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* Favorable Weather Reassurance */
+              <div className="p-2 sm:p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-[#003629] flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1b6d24] flex-shrink-0" />
+                  <span className="font-semibold truncate">
+                    {weather?.diseaseWarning?.summary || 'Current microclimate presents standard baseline disease incubation. Favorable conditions for normal scouting.'}
+                  </span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded bg-[#a0f399] text-[#003629] text-[9px] font-extrabold flex-shrink-0">
+                  {weather?.sprayConditionText || 'Optimal Spray'}
+                </span>
+              </div>
+            )}
+
+            {/* Quick Testing & Simulation Controls (for verifying warnings) */}
+            <div className="pt-2.5 border-t border-[#c0c9c3]/30 flex flex-col md:flex-row md:items-center justify-between gap-2.5 text-xs">
+              {/* Left side: Station location chip */}
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-6 h-6 rounded-lg bg-[#e8f0e9] text-[#1b6d24] flex items-center justify-center flex-shrink-0 border border-[#a0f399]/60 shadow-2xs">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                  <span className="font-display font-bold text-xs text-[#003629] truncate">
+                    {locationLabel}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#e8f0e9]/80 text-[#1b4d3e] border border-[#c0c9c3]/40">
+                    {currentCoords.lat.toFixed(2)}°N, {currentCoords.lon.toFixed(2)}°E
+                  </span>
+                </div>
+              </div>
+
+              {/* Right side: Segmented Simulation Control Switch */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#707974] flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#1b6d24]" />
+                  Simulate Risk:
+                </span>
+                <div className="inline-flex items-center p-0.5 rounded-xl bg-[#f4fbf4] border border-[#c0c9c3]/60 shadow-2xs gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSimulationChange('none')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 ${
+                      simulateMode === 'none'
+                        ? 'bg-[#003629] text-white shadow-xs'
+                        : 'text-[#404945] hover:text-[#003629] hover:bg-white/80'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${simulateMode === 'none' ? 'bg-[#a0f399]' : 'bg-[#1b6d24]'}`} />
+                    Live GPS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSimulationChange('humidity')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 ${
+                      simulateMode === 'humidity'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'text-amber-900 hover:bg-amber-100/70'
+                    }`}
+                    title="Simulate 91% High Humidity Fungal Alert"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    91% Humidity
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSimulationChange('rain')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 ${
+                      simulateMode === 'rain'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'text-blue-900 hover:bg-blue-100/70'
+                    }`}
+                    title="Simulate Heavy Monsoon Rain Washout Alert"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-300" />
+                    Heavy Rain
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSimulationChange('wind')}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 ${
+                      simulateMode === 'wind'
+                        ? 'bg-teal-600 text-white shadow-xs'
+                        : 'text-teal-900 hover:bg-teal-100/70'
+                    }`}
+                    title="Simulate High Wind Drift Alert"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-300" />
+                    High Wind
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Main Scanner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">

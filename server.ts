@@ -138,11 +138,115 @@ app.get('/api/ai-status', (_req, res) => {
   });
 });
 
+// Helper to generate diurnal hourly forecast curves for 24 hours
+function generateDiurnalForecast(
+  baseTemp: number,
+  baseHumidity: number,
+  isRainEvent = false,
+  isHumidEvent = false
+) {
+  const currentHour = new Date().getHours();
+  const list = [];
+  for (let i = 0; i < 24; i++) {
+    const h = (currentHour + i) % 24;
+    // Diurnal variation: warmest around 14:00 (2 PM), coolest around 05:00 (5 AM)
+    const diurnalFactor = Math.sin(((h - 8) / 12) * Math.PI); // -1 at 2 AM, +1 at 2 PM
+    let temp = Math.round((baseTemp + diurnalFactor * 4.5) * 10) / 10;
+    let humidity = Math.round(baseHumidity - diurnalFactor * 16);
+
+    if (isHumidEvent) {
+      humidity = Math.min(96, Math.max(81, humidity + 12));
+    }
+    if (isRainEvent && i >= 2 && i <= 10) {
+      humidity = Math.min(98, Math.max(88, humidity + 15));
+      temp = Math.max(20, temp - 3);
+    }
+    humidity = Math.min(99, Math.max(30, humidity));
+
+    const rainAmount = isRainEvent && i >= 2 && i <= 10 ? Math.round((2.5 + Math.sin(i) * 1.8) * 10) / 10 : 0;
+    const rainProb = isRainEvent && i >= 1 && i <= 12 ? Math.round(75 + Math.random() * 20) : (humidity > 80 ? 35 : 10);
+    const timeLabel = `${String(h).padStart(2, '0')}:00`;
+
+    // Feasibility for spraying: best between 6-9 AM or 5-7 PM if humidity < 78% and no rain
+    const isOptimalSpray = !isRainEvent && rainAmount === 0 && humidity < 80 && temp >= 18 && temp <= 32 && (h >= 6 && h <= 10 || h >= 16 && h <= 19);
+
+    list.push({
+      time: timeLabel,
+      hour: h,
+      temperature: temp,
+      humidity,
+      rainProbability: rainProb,
+      rainAmount,
+      isOptimalSpray,
+    });
+  }
+  return list;
+}
+
 // REST API: GET /api/weather (OpenWeatherMap with fallback to Open-Meteo)
 app.get('/api/weather', async (req, res) => {
   const lat = req.query.lat || '17.3850';
   const lon = req.query.lon || '78.4867';
+  const simulate = req.query.simulate as string | undefined;
   const owmKey = process.env.OPENWEATHERMAP_API_KEY || process.env.OPENWEATHER_API_KEY;
+
+  // Handle simulation modes for testing high risk conditions
+  if (simulate === 'humidity') {
+    return res.json({
+      success: true,
+      source: 'Simulation',
+      data: {
+        temperature: 27,
+        humidity: 91,
+        apparentTemperature: 31,
+        windSpeed: 4.8,
+        weatherMain: 'Clouds',
+        description: 'Dense humid overcast - High spore germination risk',
+        weatherId: 803,
+        cityName: 'Field Test (High Humidity Alert)',
+        rainAmount: 0,
+        hourlyForecast: generateDiurnalForecast(27, 91, false, true),
+      }
+    });
+  }
+
+  if (simulate === 'rain') {
+    return res.json({
+      success: true,
+      source: 'Simulation',
+      data: {
+        temperature: 23,
+        humidity: 94,
+        apparentTemperature: 24,
+        windSpeed: 16.5,
+        weatherMain: 'Rain',
+        description: 'Heavy Monsoon Downpour - Chemical wash-off risk',
+        weatherId: 502,
+        cityName: 'Field Test (Heavy Rain Warning)',
+        rainAmount: 18.5,
+        hourlyForecast: generateDiurnalForecast(23, 94, true, false),
+      }
+    });
+  }
+
+  if (simulate === 'wind') {
+    return res.json({
+      success: true,
+      source: 'Simulation',
+      data: {
+        temperature: 29,
+        humidity: 55,
+        apparentTemperature: 30,
+        windSpeed: 24.2,
+        weatherMain: 'Wind',
+        description: 'Strong Gusts - Spray drift hazard',
+        weatherId: 800,
+        cityName: 'Field Test (High Wind Drift)',
+        rainAmount: 0,
+        hourlyForecast: generateDiurnalForecast(29, 55, false, false),
+      }
+    });
+  }
 
   if (owmKey) {
     try {
@@ -150,18 +254,26 @@ app.get('/api/weather', async (req, res) => {
       const response = await fetch(owmUrl);
       if (response.ok) {
         const d = await response.json();
+        const rainAmount = d.rain?.['1h'] ?? d.rain?.['3h'] ?? (d.weather?.[0]?.main?.toLowerCase().includes('rain') ? 4.5 : 0);
+        const temp = d.main?.temp ?? 28;
+        const humidity = d.main?.humidity ?? 70;
+        const isRain = d.weather?.[0]?.main?.toLowerCase().includes('rain');
+
         return res.json({
           success: true,
           source: 'OpenWeatherMap',
           data: {
-            temperature: d.main?.temp ?? 28,
-            humidity: d.main?.humidity ?? 70,
-            apparentTemperature: d.main?.feels_like ?? d.main?.temp ?? 28,
+            temperature: temp,
+            humidity,
+            apparentTemperature: d.main?.feels_like ?? temp,
             windSpeed: (d.wind?.speed ?? 2) * 3.6, // m/s to km/h
             weatherMain: d.weather?.[0]?.main || 'Clear',
             description: d.weather?.[0]?.description || 'Clear sky',
             weatherId: d.weather?.[0]?.id || 800,
-            cityName: d.name || 'Local Farm'
+            cityName: d.name || 'Local Farm',
+            rainAmount,
+            country: d.sys?.country || 'IN',
+            hourlyForecast: generateDiurnalForecast(temp, humidity, isRain, humidity >= 80),
           }
         });
       }
@@ -172,23 +284,61 @@ app.get('/api/weather', async (req, res) => {
 
   // Live direct fallback to open-meteo
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,wind_speed_10m,weather_code&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,wind_speed_10m,weather_code&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,wind_speed_10m&forecast_days=2&timezone=auto`;
     const response = await fetch(url);
     if (response.ok) {
       const d = await response.json();
       const cur = d.current || {};
+      const rainAmount = (cur.precipitation ?? 0) + (cur.rain ?? 0);
+      const isRain = rainAmount > 0 || (cur.weather_code ?? 0) >= 51;
+      const curTemp = cur.temperature_2m ?? 28;
+      const curHum = cur.relative_humidity_2m ?? 70;
+
+      let hourlyForecast = [];
+      if (d.hourly && Array.isArray(d.hourly.time) && Array.isArray(d.hourly.temperature_2m)) {
+        const nowIsoPrefix = new Date().toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+        let startIdx = d.hourly.time.findIndex((t: string) => t.startsWith(nowIsoPrefix));
+        if (startIdx === -1) startIdx = 0;
+
+        for (let i = startIdx; i < Math.min(startIdx + 24, d.hourly.time.length); i++) {
+          const tIso = d.hourly.time[i];
+          const hourPart = parseInt(tIso.split('T')[1]?.split(':')[0] || '0', 10);
+          const tVal = Math.round((d.hourly.temperature_2m[i] ?? 28) * 10) / 10;
+          const hVal = Math.round(d.hourly.relative_humidity_2m?.[i] ?? 70);
+          const pProb = Math.round(d.hourly.precipitation_probability?.[i] ?? 0);
+          const pVal = Math.round((d.hourly.precipitation?.[i] ?? 0) * 10) / 10;
+          const isOptimal = pVal === 0 && hVal < 80 && tVal >= 18 && tVal <= 32 && (hourPart >= 6 && hourPart <= 10 || hourPart >= 16 && hourPart <= 19);
+
+          hourlyForecast.push({
+            time: `${String(hourPart).padStart(2, '0')}:00`,
+            hour: hourPart,
+            temperature: tVal,
+            humidity: hVal,
+            rainProbability: pProb,
+            rainAmount: pVal,
+            isOptimalSpray: isOptimal,
+          });
+        }
+      }
+
+      if (hourlyForecast.length < 12) {
+        hourlyForecast = generateDiurnalForecast(curTemp, curHum, isRain, curHum >= 80);
+      }
+
       return res.json({
         success: true,
         source: 'Open-Meteo',
         data: {
-          temperature: cur.temperature_2m ?? 28,
-          humidity: cur.relative_humidity_2m ?? 70,
-          apparentTemperature: cur.apparent_temperature ?? 28,
+          temperature: curTemp,
+          humidity: curHum,
+          apparentTemperature: cur.apparent_temperature ?? curTemp,
           windSpeed: cur.wind_speed_10m ?? 6,
-          weatherMain: (cur.precipitation ?? 0) > 0 ? 'Rain' : (cur.weather_code ?? 0) >= 3 ? 'Clouds' : 'Clear',
-          description: (cur.weather_code ?? 0) >= 3 ? 'Partly cloudy' : 'Clear sky',
+          weatherMain: isRain ? 'Rain' : (cur.weather_code ?? 0) >= 3 ? 'Clouds' : 'Clear',
+          description: isRain ? 'Precipitation / Rain' : (cur.weather_code ?? 0) >= 3 ? 'Partly cloudy' : 'Clear sky',
           weatherId: cur.weather_code ?? 800,
-          cityName: 'Local Field'
+          cityName: 'Local Field',
+          rainAmount,
+          hourlyForecast,
         }
       });
     }
@@ -207,7 +357,9 @@ app.get('/api/weather', async (req, res) => {
       weatherMain: 'Clear',
       description: 'Clear sky',
       weatherId: 800,
-      cityName: 'Field Location'
+      cityName: 'Field Location',
+      rainAmount: 0,
+      hourlyForecast: generateDiurnalForecast(28, 70, false, false),
     }
   });
 });

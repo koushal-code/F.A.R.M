@@ -1,5 +1,5 @@
 // Service Worker for FARM PWA - Network First with automatic cache busting
-const CACHE_NAME = 'farm-pwa-v5';
+const CACHE_NAME = 'farm-pwa-v3';
 
 self.addEventListener('install', (event) => {
   // Force active immediately without waiting

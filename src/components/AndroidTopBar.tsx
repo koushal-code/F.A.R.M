@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { SupportedLanguage, FarmerProfile } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
-import { FARM_LOGO_SRC } from '../constants/assets';
 import { RealtimeWeather, REGION_PRESETS, fetchLiveWeather } from '../services/weatherService';
 import { 
   LiveGpsCoordinates, 
@@ -321,11 +320,9 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2.5">
           {/* App Title & Branding */}
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <img 
-              src={FARM_LOGO_SRC} 
-              alt="FARM Logo" 
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain border border-[#a0f399]/50 shadow-xs flex-shrink-0 bg-white p-0.5"
-            />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#1b4d3e] text-[#a0f399] flex items-center justify-center border border-[#a0f399]/40 shadow-xs flex-shrink-0">
+              <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-display text-base sm:text-xl font-black tracking-tight text-white">
@@ -346,18 +343,18 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
             {/* Farmer Profile Button */}
             <button
               onClick={onOpenProfileModal}
-              title={farmerProfile ? `Farmer Profile: ${farmerProfile.name} (${farmerProfile.displayName})` : 'Farmer Profile / Settings'}
+              title={farmerProfile ? `Farmer: ${farmerProfile.name} (${farmerProfile.displayName})` : 'Farmer Registration & Profile'}
               className="h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
             >
               <div className="w-5 h-5 rounded-lg bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-[10px] flex-shrink-0">
-                {farmerProfile?.name ? farmerProfile.name.charAt(0).toUpperCase() : 'F'}
+                {farmerProfile?.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
               </div>
               <div className="hidden xs:flex flex-col text-left leading-none max-w-[80px] sm:max-w-[110px]">
                 <span className="text-[11px] font-extrabold truncate text-white">
-                  {farmerProfile?.name || 'Farmer Profile'}
+                  {farmerProfile?.name || 'Kisan'}
                 </span>
                 <span className="text-[9px] text-[#a0f399] font-bold truncate">
-                  {farmerProfile?.district || 'Profile'}
+                  {farmerProfile?.district || 'Register'}
                 </span>
               </div>
             </button>

@@ -14,7 +14,6 @@ import { HistoryPage } from './components/HistoryPage';
 import { FlutterExportModal } from './components/FlutterExportModal';
 import { AiEngineModal } from './components/AiEngineModal';
 import { FarmerRegistrationModal } from './components/FarmerRegistrationModal';
-import { RegistrationPage } from './components/RegistrationPage';
 import { CropSample, CropDiagnosis, HistoryItem, SupportedLanguage, AndroidAppTab, FarmerProfile } from './types/farm';
 import { TRANSLATIONS } from './data/translations';
 import { getLocalizedSamples } from './data/samples';
@@ -124,18 +123,10 @@ export default function App() {
     setFarmerProfile(profile);
     localStorage.setItem(STORAGE_KEY_FARMER_PROFILE, JSON.stringify(profile));
     setIsInitialOnboarding(false);
-    setIsRegistrationModalOpen(false);
 
     if (profile.preferredLanguage && profile.preferredLanguage !== currentLang) {
       handleLanguageChange(profile.preferredLanguage);
     }
-  };
-
-  const handleSwitchFarmer = () => {
-    localStorage.removeItem(STORAGE_KEY_FARMER_PROFILE);
-    setFarmerProfile(null);
-    setIsInitialOnboarding(true);
-    setIsRegistrationModalOpen(false);
   };
 
   const handleLanguageChange = (lang: SupportedLanguage) => {
@@ -206,7 +197,6 @@ export default function App() {
           cropHint: cropHint || undefined,
           additionalNotes: notes || undefined,
           lang: langToUse,
-          farmerProfile: farmerProfile || undefined,
         }),
       });
 
@@ -274,16 +264,6 @@ export default function App() {
 
   const t = TRANSLATIONS[currentLang];
 
-  if (!farmerProfile || !farmerProfile.isRegistered) {
-    return (
-      <RegistrationPage
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-        onCompleteAuth={handleSaveProfile}
-      />
-    );
-  }
-
   return (
     <div className={`min-h-screen flex flex-col transition-colors ${
       highContrast 
@@ -297,8 +277,6 @@ export default function App() {
         onToggleHighContrast={handleToggleHighContrast}
         onOpenFlutterExport={() => setIsFlutterModalOpen(true)}
         onOpenAiSetup={() => setIsAiModalOpen(true)}
-        farmerProfile={farmerProfile}
-        onOpenProfileModal={() => setIsRegistrationModalOpen(true)}
       />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-3.5 sm:py-6 pb-28 sm:pb-32 space-y-4 sm:space-y-6">
@@ -366,17 +344,13 @@ export default function App() {
         )}
 
         {activeTab === 'calculator' && (
-          <CalculatorPage 
-            currentLang={currentLang} 
-            farmerProfile={farmerProfile}
-          />
+          <CalculatorPage currentLang={currentLang} />
         )}
 
         {activeTab === 'guide' && (
           <CropGuidePage
             currentLang={currentLang}
             onSelectCropForScan={handleSelectCropFromGuide}
-            farmerProfile={farmerProfile}
           />
         )}
 
@@ -413,16 +387,6 @@ export default function App() {
         currentLang={currentLang}
         hasDiagnosis={!!diagnosis}
         historyCount={history.length}
-      />
-
-      <FarmerRegistrationModal
-        isOpen={isRegistrationModalOpen}
-        onClose={() => setIsRegistrationModalOpen(false)}
-        farmerProfile={farmerProfile}
-        onSaveProfile={handleSaveProfile}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
-        onSwitchFarmer={handleSwitchFarmer}
       />
 
       <FlutterExportModal

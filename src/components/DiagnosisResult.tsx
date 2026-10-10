@@ -603,11 +603,11 @@ ${diagnosis.treatmentPlan.organicSolutions.map(o => o.name).join(', ')}`;
                 </label>
                 <input
                   type="number"
-                  min="0.01"
-                  max="10000"
-                  step="any"
+                  min="0.25"
+                  max="50"
+                  step="0.25"
                   value={farmAcres}
-                  onChange={(e) => setFarmAcres(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => setFarmAcres(Math.max(0.25, parseFloat(e.target.value) || 1))}
                   className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24]"
                 />
               </div>
