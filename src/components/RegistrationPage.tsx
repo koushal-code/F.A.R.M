@@ -859,22 +859,15 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({
 
                 {/* Farmer Profile Pass Preview */}
                 <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#003629] to-[#1b4d3e] text-white flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <img 
-                      src={FARM_LOGO_SRC} 
-                      alt="Logo" 
-                      className="w-10 h-10 rounded-xl object-contain bg-white p-0.5 border border-[#a0f399]/40 flex-shrink-0"
-                    />
-                    <div>
-                      <div className="text-[10px] font-extrabold uppercase text-[#a0f399]">
-                        Farmer Profile Preview
-                      </div>
-                      <div className="font-display font-black text-sm text-white">
-                        {name || 'Ramesh Patel'}
-                      </div>
-                      <div className="text-[11px] text-[#baeed9]">
-                        {village || selectedDistrict}, {selectedDistrict} • {landAcres} Acres
-                      </div>
+                  <div>
+                    <div className="text-[10px] font-extrabold uppercase text-[#a0f399]">
+                      Farmer Profile Preview
+                    </div>
+                    <div className="font-display font-black text-sm text-white">
+                      {name || 'Ramesh Patel'}
+                    </div>
+                    <div className="text-[11px] text-[#baeed9]">
+                      {village || selectedDistrict}, {selectedDistrict} • {landAcres} Acres
                     </div>
                   </div>
                   <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#a0f399] text-[#003629] font-black uppercase">
