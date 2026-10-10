@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Cpu, RefreshCw, ShieldCheck } from 'lucide-react';
 import { SupportedLanguage } from '../types/farm';
+import { TRANSLATIONS } from '../data/translations';
 
 interface AiEngineModalProps {
   isOpen: boolean;
@@ -80,6 +81,11 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
       title: 'விவசாய விஷன் & ஆடியோ கண்டறியும் என்ஜின்',
       subtitle: 'பயிர் நோய் மற்றும் இலை சேதத்தின் நிகழ்நேர ஆய்வு',
       howTo: 'கண்டறியும் பைப்லைன் எவ்வாறு செயல்படுகிறது',
+    },
+    gu: {
+      title: 'કૃષિ વિઝન અને ઓડિયો ડાયગ્નોસ્ટિક એન્જિન',
+      subtitle: 'વાસ્તવિક સમયમાં પાકના રોગ અને પર્ણ નુકસાનનું સચોટ વિશ્લેષણ',
+      howTo: 'ડાયગ્નોસ્ટિક પાઇપલાઇન કેવી રીતે કાર્ય કરે છે',
     }
   };
 
@@ -197,7 +203,7 @@ export const AiEngineModal: React.FC<AiEngineModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-[#003629] text-white text-xs font-bold hover:bg-[#1b4d3e]"
           >
-            Close
+            {TRANSLATIONS[currentLang]?.closeBtn || 'Close'}
           </button>
         </div>
       </div>

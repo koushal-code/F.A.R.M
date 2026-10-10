@@ -15,11 +15,7 @@ import {
   Navigation,
   Crosshair,
   Activity,
-  Layers,
-  User as UserIcon,
-  Cloud,
-  LogOut,
-  LogIn
+  Layers
 } from 'lucide-react';
 import { SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
@@ -30,7 +26,6 @@ import {
   reverseGeocodeCoords 
 } from '../services/gpsService';
 import { LiveGpsPrecisionModal } from './LiveGpsPrecisionModal';
-import { FarmLogo } from './FarmLogo';
 
 interface AndroidTopBarProps {
   currentLang: SupportedLanguage;
@@ -39,10 +34,6 @@ interface AndroidTopBarProps {
   onToggleHighContrast: () => void;
   onOpenFlutterExport?: () => void;
   onOpenAiSetup?: () => void;
-  user?: any | null;
-  onSignIn?: () => void;
-  onSignOut?: () => void;
-  isSyncing?: boolean;
 }
 
 const INDIAN_LANGUAGES: { code: SupportedLanguage; label: string; script: string }[] = [
@@ -50,7 +41,8 @@ const INDIAN_LANGUAGES: { code: SupportedLanguage; label: string; script: string
   { code: 'hi', label: 'हिन्दी', script: 'Hindi' },
   { code: 'te', label: 'తెలుగు', script: 'Telugu' },
   { code: 'kn', label: 'ಕನ್ನಡ', script: 'Kannada' },
-  { code: 'ta', label: 'தமிழ்', script: 'Tamil' }
+  { code: 'ta', label: 'தமிழ்', script: 'Tamil' },
+  { code: 'gu', label: 'ગુજરાતી', script: 'Gujarati' }
 ];
 
 export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
@@ -60,15 +52,10 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
   onToggleHighContrast,
   onOpenFlutterExport,
   onOpenAiSetup,
-  user,
-  onSignIn,
-  onSignOut,
-  isSyncing,
 }) => {
   const t = TRANSLATIONS[currentLang];
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const [isLocationMenuOpen, setIsLocationMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [weather, setWeather] = useState<RealtimeWeather | null>(null);
   const [currentRegion, setCurrentRegion] = useState(REGION_PRESETS[0]);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
@@ -304,11 +291,11 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
         {/* Main App Bar Controls */}
         <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2.5">
           {/* App Title & Branding */}
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center border border-[#a0f399]/60 shadow-xs flex-shrink-0 overflow-hidden p-0.5">
-              <FarmLogo size={36} showWordmark={false} className="w-full h-full object-contain" />
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#1b4d3e] text-[#a0f399] flex items-center justify-center border border-[#a0f399]/40 shadow-xs flex-shrink-0">
+              <Sprout className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5 leading-none">
                 <span className="font-display text-base sm:text-xl font-black tracking-tight text-white">
                   FARM
@@ -317,45 +304,32 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
                   AI
                 </span>
               </div>
-              <p className="text-[10.5px] sm:text-xs text-[#a0f399] font-bold leading-tight mt-0.5 tracking-wide line-clamp-1 sm:line-clamp-none">
+              <p className="text-[10px] text-[#8abda9] font-medium leading-tight truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none mt-0.5">
                 {t.tagline}
               </p>
             </div>
           </div>
 
-          {/* Action Controls: Live GPS, AI Engine, Language */}
+          {/* Action Controls: Live GPS, Language */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {/* Live GPS Quick Button */}
             <button
               onClick={() => setIsGpsModalOpen(true)}
               title="Live GPS Satellite Tracking"
-              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs font-bold border transition-all ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs font-bold border transition-all ${
                 isTrackingGps
                   ? 'bg-emerald-500 text-white border-emerald-400 shadow-sm animate-pulse'
                   : 'bg-[#1b4d3e] hover:bg-[#256653] text-[#a0f399] border-white/20'
               }`}
             >
-              <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Navigation className="w-4 h-4" />
             </button>
-
-            {/* AI Vision Engine Status (visible on tablet/desktop, streamlined on mobile) */}
-            {onOpenAiSetup && (
-              <button
-                onClick={onOpenAiSetup}
-                title="Gemini AI Vision Engine & Audio Setup"
-                className="hidden md:flex h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs items-center gap-1.5 transition-all"
-              >
-                <div className="w-2 h-2 rounded-full bg-[#a0f399] animate-pulse flex-shrink-0" />
-                <Cpu className="w-4 h-4 text-[#a0f399]" />
-                <span className="font-semibold">{t.aiEngine}</span>
-              </button>
-            )}
 
             {/* Language Selector Dropdown with Indian Languages */}
             <div className="relative">
               <button
                 onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                className="h-8 sm:h-10 px-2 sm:px-3 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1 sm:gap-1.5 transition-all"
+                className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
                 aria-label="Select Indian Language"
               >
                 <Globe className="w-4 h-4 text-[#a0f399]" />
@@ -396,101 +370,7 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
                 </>
               )}
             </div>
-
-            {/* Firebase Account & Cloud Sync */}
-            <div className="relative">
-              {user ? (
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  title={`${user.displayName || 'Farmer'} (Firestore Synced)`}
-                  className="h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-[#a0f399]/40 shadow-xs flex items-center gap-1.5 transition-all"
-                >
-                  {user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt={user.displayName || 'Farmer'}
-                      className="w-5 h-5 rounded-full object-cover border border-[#a0f399]"
-                    />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-[#a0f399] text-[#003629] flex items-center justify-center text-[10px] font-black">
-                      {(user.displayName || user.email || 'F')[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Cloud className={`w-3.5 h-3.5 text-[#a0f399] ${isSyncing ? 'animate-bounce' : ''}`} />
-                    <ChevronDown className="w-2.5 h-2.5 text-[#8abda9]" />
-                  </div>
-                </button>
-              ) : (
-                <button
-                  onClick={onSignIn}
-                  title="Sign in with Google to sync scans to Firebase"
-                  className="h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl bg-[#a0f399] hover:bg-[#b2f7ab] text-[#003629] text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all"
-                >
-                  <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span className="hidden sm:inline font-extrabold">Sign In</span>
-                </button>
-              )}
-
-              {isUserMenuOpen && user && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-60 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-[#dde4de]">
-                      {user.photoURL ? (
-                        <img
-                          src={user.photoURL}
-                          alt={user.displayName || 'Farmer'}
-                          className="w-9 h-9 rounded-full object-cover border border-[#c0c9c3]"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-[#1b4d3e] text-[#a0f399] flex items-center justify-center text-sm font-black">
-                          {(user.displayName || user.email || 'F')[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-bold truncate text-[#161d19]">
-                          {user.displayName || 'Farmer'}
-                        </div>
-                        <div className="text-[10px] text-[#707974] truncate">
-                          {user.email || 'Signed In'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="py-2 text-[11px] text-[#1b6d24] flex items-center gap-1.5 font-semibold">
-                      <Cloud className="w-3.5 h-3.5 text-[#1b6d24]" />
-                      <span>Firebase Cloud Database Active</span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        onSignOut?.();
-                      }}
-                      className="w-full mt-1 px-3 py-2 text-left text-xs font-bold text-[#ba1a1a] hover:bg-[#ffdad6]/40 rounded-xl flex items-center gap-2 transition-colors"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
           </div>
-        </div>
-
-        {/* Mobile Full Title Banner: Guarantees full legibility of Farmer's Advisory & Resource Module on all mobile devices */}
-        <div className="sm:hidden bg-[#00261d] px-3 py-1.5 border-t border-white/10 flex items-center justify-between gap-2 shadow-inner">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#a0f399] flex-shrink-0 animate-pulse" />
-            <span className="text-[11px] font-extrabold text-[#baeed9] tracking-wide leading-none truncate">
-              {t.tagline}
-            </span>
-          </div>
-          <span className="text-[9px] uppercase font-black px-1.5 py-0.5 rounded bg-[#1b4d3e] text-[#a0f399] border border-[#a0f399]/40 flex-shrink-0">
-            FARM AI
-          </span>
         </div>
       </header>
 

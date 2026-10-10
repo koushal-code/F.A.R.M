@@ -145,7 +145,7 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang }) =
                   {dosePerTank} {productType === 'powder' ? 'g' : 'ml'}
                 </div>
                 <div className="text-[11px] text-[#404945] mt-1">
-                  {tankSize}L water
+                  {tankSize}L {t.waterLabel}
                 </div>
               </div>
 
@@ -155,13 +155,13 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang }) =
                   <span className="font-bold text-[#003629] text-sm">~{totalTanksForPlot}</span>
                 </div>
                 <div className="p-3 rounded-lg bg-[#f4fbf4] border border-[#dde4de]">
-                  <strong className="block text-[#404945]">Chemical:</strong>
+                  <strong className="block text-[#404945]">{t.chemicalLabel || 'Chemical'}:</strong>
                   <span className="font-bold text-[#1b6d24] text-sm">~{totalChemicalForPlot} {productType === 'powder' ? 'g' : 'ml'}</span>
                 </div>
               </div>
 
               <div className="p-3 rounded-lg bg-[#f4fbf4] border border-[#dde4de] text-xs">
-                <strong className="block text-[#404945]">Water:</strong>
+                <strong className="block text-[#404945]">{t.waterLabel || 'Water'}:</strong>
                 <span className="text-[#161d19] font-medium">~{totalWaterNeeded} L ({plotAcres} ac)</span>
               </div>
             </div>

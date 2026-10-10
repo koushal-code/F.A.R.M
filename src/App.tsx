@@ -16,27 +16,26 @@ import { AiEngineModal } from './components/AiEngineModal';
 import { CropSample, CropDiagnosis, HistoryItem, SupportedLanguage, AndroidAppTab } from './types/farm';
 import { TRANSLATIONS } from './data/translations';
 import { getLocalizedSamples } from './data/samples';
-import { AlertCircle, Scan } from 'lucide-react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { 
-  auth, 
-  signInWithGoogle, 
-  logOut, 
-  testConnection, 
-  saveScanToFirestore, 
-  fetchUserScansFromFirestore 
-} from './services/firebase';
+import { AlertCircle, Scan, Cpu } from 'lucide-react';
 
 const STORAGE_KEY_HISTORY = 'farm_crop_scan_history';
 const STORAGE_KEY_LANG = 'farm_crop_preferred_lang';
 const STORAGE_KEY_CONTRAST = 'farm_crop_high_contrast';
 
 export default function App() {
-  const [currentLang, setCurrentLang] = useState<SupportedLanguage>('en');
+  const [currentLang, setCurrentLang] = useState<SupportedLanguage>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_LANG) as SupportedLanguage;
+      if (saved && ['en', 'hi', 'te', 'kn', 'ta', 'gu'].includes(saved)) {
+        return saved;
+      }
+    }
+    return 'gu';
+  });
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<AndroidAppTab>('scan');
 
-  const [samples, setSamples] = useState<CropSample[]>(() => getLocalizedSamples('en'));
+  const [samples, setSamples] = useState<CropSample[]>(() => getLocalizedSamples('gu'));
   const [selectedSample, setSelectedSample] = useState<CropSample | null>(null);
   const [customImageBase64, setCustomImageBase64] = useState<string | null>(null);
   const [customFile, setCustomFile] = useState<File | null>(null);
@@ -48,64 +47,15 @@ export default function App() {
   const [isFlutterModalOpen, setIsFlutterModalOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
 
-  // Firebase Authentication & Cloud Sync state
-  const [user, setUser] = useState<User | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Validate connection to Firestore on initial boot
-    testConnection();
-
-    // Listen to Firebase authentication state
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        setIsSyncing(true);
-        try {
-          const cloudScans = await fetchUserScansFromFirestore(currentUser.uid);
-          if (cloudScans && cloudScans.length > 0) {
-            setHistory(prev => {
-              // Combine cloud scans with local scans, eliminating duplicates by ID
-              const existingIds = new Set(cloudScans.map(s => s.id));
-              const localUnsynced = prev.filter(p => !existingIds.has(p.id));
-              
-              // Upload any local scans made while offline/signed out to Firestore
-              localUnsynced.forEach(scan => {
-                saveScanToFirestore(currentUser.uid, scan).catch(console.error);
-              });
-
-              const merged = [...cloudScans, ...localUnsynced].slice(0, 30);
-              localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(merged));
-              return merged;
-            });
-          } else {
-            // User has no cloud scans yet, upload current local scans if any
-            const savedLocal = localStorage.getItem(STORAGE_KEY_HISTORY);
-            if (savedLocal) {
-              try {
-                const parsed: HistoryItem[] = JSON.parse(savedLocal);
-                parsed.forEach(scan => {
-                  saveScanToFirestore(currentUser.uid, scan).catch(console.error);
-                });
-              } catch (_e) {}
-            }
-          }
-        } catch (err) {
-          console.warn('Failed to load cloud scans from Firestore:', err);
-        } finally {
-          setIsSyncing(false);
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   useEffect(() => {
     const savedLang = localStorage.getItem(STORAGE_KEY_LANG) as SupportedLanguage;
-    if (savedLang) {
+    if (savedLang && ['en', 'hi', 'te', 'kn', 'ta', 'gu'].includes(savedLang)) {
       setCurrentLang(savedLang);
       setSamples(getLocalizedSamples(savedLang));
+    } else {
+      setCurrentLang('gu');
+      setSamples(getLocalizedSamples('gu'));
+      localStorage.setItem(STORAGE_KEY_LANG, 'gu');
     }
 
     const savedContrast = localStorage.getItem(STORAGE_KEY_CONTRAST);
@@ -120,40 +70,6 @@ export default function App() {
       }
     }
   }, []);
-
-  const handleSignIn = async () => {
-    try {
-      setErrorMessage(null);
-      await signInWithGoogle();
-    } catch (err: any) {
-      console.error('Google Sign-in error:', err);
-      // Suppress normal user cancellations
-      if (
-        err.code === 'auth/popup-closed-by-user' || 
-        err.code === 'auth/cancelled-popup-request' ||
-        err.message?.includes('popup-closed-by-user')
-      ) {
-        return;
-      }
-      if (err.code === 'auth/popup-blocked') {
-        setErrorMessage('Sign-in popup was blocked by your browser. Please allow popups for this site.');
-        return;
-      }
-      if (err.code === 'auth/unauthorized-domain') {
-        setErrorMessage('Firebase authorized domains updated. Please click Sign In again.');
-        return;
-      }
-      setErrorMessage(err.message || 'Failed to complete Google Sign-in');
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await logOut();
-    } catch (err: any) {
-      console.error('Sign-out error:', err);
-    }
-  };
 
   const handleLanguageChange = (lang: SupportedLanguage) => {
     setCurrentLang(lang);
@@ -245,16 +161,9 @@ export default function App() {
         diagnosis: result
       };
 
-      const updatedHistory = [newHistoryItem, ...history.slice(0, 29)];
+      const updatedHistory = [newHistoryItem, ...history.slice(0, 19)];
       setHistory(updatedHistory);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(updatedHistory));
-
-      // Persist to Firebase Firestore if farmer is authenticated
-      if (user) {
-        saveScanToFirestore(user.uid, newHistoryItem).catch((err) => {
-          console.warn('Failed to save scan record to Firestore:', err);
-        });
-      }
 
       setActiveTab('diagnosis');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -310,10 +219,6 @@ export default function App() {
         onToggleHighContrast={handleToggleHighContrast}
         onOpenFlutterExport={() => setIsFlutterModalOpen(true)}
         onOpenAiSetup={() => setIsAiModalOpen(true)}
-        user={user}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
-        isSyncing={isSyncing}
       />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-3.5 sm:py-6 pb-28 sm:pb-32 space-y-4 sm:space-y-6">
@@ -396,10 +301,21 @@ export default function App() {
             onClearHistory={handleClearHistory}
             currentLang={currentLang}
             onStartNewScan={() => setActiveTab('scan')}
-            user={user}
-            onSignIn={handleSignIn}
           />
         )}
+
+        {/* Discreet footer information link */}
+        <footer className="pt-8 pb-3 border-t border-[#c0c9c3]/30 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#707974]">
+          <span className="opacity-75">{t.appName} • {t.tagline}</span>
+          <button
+            onClick={() => setIsAiModalOpen(true)}
+            className="text-[11px] text-[#56605b] hover:text-[#003629] hover:underline flex items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity"
+            title="Inspect diagnostic engine architecture"
+          >
+            <Cpu className="w-3.5 h-3.5 text-[#1b6d24]" />
+            <span>{t.aiEngine}</span>
+          </button>
+        </footer>
       </main>
 
       <AndroidNavBar

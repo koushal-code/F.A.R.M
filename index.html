@@ -8,8 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/farm-logo.svg" />
-    <link rel="apple-touch-icon" href="/farm-logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <script>
       // Prevent Vite HMR WebSocket connection failure in Cloud Run preview environment
       (function() {
@@ -69,10 +69,10 @@
         }, true);
       })();
     </script>
-    <title>FARM - Farmer's Advisory & Resource Module</title>
-    <meta name="description" content="Farmer's Advisory & Resource Module (FARM) - Precision agricultural diagnostic tool for farmers to detect crop diseases, pest infestations, and leaf damage with treatment protocols and health recovery plans." />
-    <meta property="og:title" content="FARM - Farmer's Advisory & Resource Module" />
-    <meta property="og:description" content="Farmer's Advisory & Resource Module (FARM) - Precision agricultural diagnostic tool for farmers to detect crop diseases, pest infestations, and leaf damage with treatment protocols and health recovery plans." />
+    <title>FARM - Crop Disease & Pest Health Diagnostic AI</title>
+    <meta name="description" content="Precision agricultural diagnostic tool for farmers to detect crop diseases, pest infestations, and leaf damage with treatment protocols and health recovery plans." />
+    <meta property="og:title" content="FARM - Crop Disease & Pest Health Diagnostic AI" />
+    <meta property="og:description" content="Precision agricultural diagnostic tool for farmers to detect crop diseases, pest infestations, and leaf damage with treatment protocols and health recovery plans." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -82,9 +82,26 @@
   <body class="bg-[#f4fbf4] text-[#161d19] antialiased selection:bg-[#a0f399] selection:text-[#003629]">
     <div id="root"></div>
     <script>
+      // Clean up any stale service workers or caches from previous builds
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            if (key === 'farm-pwa-v1' || key === 'farm-pwa-v2') {
+              caches.delete(key);
+            }
+          });
+        });
+      }
       if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', function(event) {
+          if (event.data && event.data.type === 'CACHE_PURGED') {
+            window.location.reload();
+          }
+        });
         window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            reg.update();
+          }).catch(function(err) {
             console.log('SW registration note:', err);
           });
         });

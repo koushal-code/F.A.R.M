@@ -4,7 +4,6 @@ import { CropSample, SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
 import { QuickFarmingTips } from './QuickFarmingTips';
-import { FarmLogo } from './FarmLogo';
 
 interface ScannerHeroProps {
   currentLang: SupportedLanguage;
@@ -58,6 +57,15 @@ function resizeImageFile(file: File, maxDim = 1200, quality = 0.85): Promise<str
     reader.readAsDataURL(file);
   });
 }
+
+const SEVERITY_LOCALIZED: Record<SupportedLanguage, Record<string, string>> = {
+  en: { Healthy: 'Healthy', Moderate: 'Moderate', Critical: 'Critical', High: 'High' },
+  hi: { Healthy: 'स्वस्थ', Moderate: 'मध्यम', Critical: 'गंभीर', High: 'उच्च' },
+  te: { Healthy: 'ఆరోగ్యకరమైనది', Moderate: 'మితమైన', Critical: 'తీవ్రమైన', High: 'ఎక్కువ' },
+  kn: { Healthy: 'ಆರೋಗ್ಯಕರ', Moderate: 'ಮಧ್ಯಮ', Critical: 'ತೀವ್ರ', High: 'ಹೆಚ್ಚು' },
+  ta: { Healthy: 'ஆரோக்கியமானது', Moderate: 'மிதமான', Critical: 'தீவிரமானது', High: 'அதிகம்' },
+  gu: { Healthy: 'તંદુરસ્ત', Moderate: 'મધ્યમ', Critical: 'ગંભીર', High: 'વધુ' }
+};
 
 export const ScannerHero: React.FC<ScannerHeroProps> = ({
   currentLang,
@@ -197,8 +205,8 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               </div>
             ) : (
               <div className="w-full flex flex-col items-center text-center py-4 sm:py-6">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-sm border border-[#a0f399] flex items-center justify-center mb-3 p-1.5 overflow-hidden">
-                  <FarmLogo size={64} showWordmark={false} className="w-full h-full object-contain" />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#e8f0e9] text-[#1b6d24] flex items-center justify-center mb-3">
+                  <Scan className="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
                 <h3 className="font-display text-base sm:text-lg font-bold text-[#161d19] mb-1">
                   {t.captureOrUpload}
@@ -252,7 +260,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="e.g. Tomato, Paddy, Cotton"
+                  placeholder={t.cropHintPlaceholder || 'e.g. Tomato, Paddy, Cotton'}
                   value={cropHint}
                   onChange={(e) => setCropHint(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
@@ -279,7 +287,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                 </div>
                 <input
                   type="text"
-                  placeholder="e.g. Yellowing spots, curled margins"
+                  placeholder={t.fieldNotesPlaceholder || 'e.g. Yellowing spots, curled margins'}
                   value={fieldNotes}
                   onChange={(e) => setFieldNotes(e.target.value)}
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
@@ -315,7 +323,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                 </p>
               </div>
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#e8f0e9] text-[#1b4d3e]">
-                {samples.length} Ready
+                {samples.length} {t.readyStatus || 'Ready'}
               </span>
             </div>
 
@@ -353,7 +361,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                               ? 'bg-[#ffdad6] text-[#ba1a1a]'
                               : 'bg-[#ffdbcf] text-[#7d2800]'
                         }`}>
-                          {sample.severity}
+                          {SEVERITY_LOCALIZED[currentLang]?.[sample.severity] || sample.severity}
                         </span>
                       </div>
                       <p className="text-[11px] text-[#404945] truncate font-medium">

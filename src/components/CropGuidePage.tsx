@@ -59,7 +59,7 @@ export const CropGuidePage: React.FC<CropGuidePageProps> = ({
       {/* Horizontal Crop Selector with Touch-Friendly Chips */}
       <div>
         <div className="text-[11px] font-bold uppercase tracking-wider text-[#707974] mb-2 px-1">
-          Select Crop ({filteredCrops.length})
+          {t.selectCropLabel || 'Select Crop'} ({filteredCrops.length})
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 pt-0.5 px-0.5 scrollbar-thin">
           {filteredCrops.map((crop) => {
@@ -134,7 +134,7 @@ export const CropGuidePage: React.FC<CropGuidePageProps> = ({
               {t.majorPestsTitle}
             </h3>
             <span className="text-[11px] font-bold text-[#707974] ml-auto">
-              {selectedCrop.commonDiseases.length} Pathologies
+              {selectedCrop.commonDiseases.length} {t.pathologiesLabel || 'Pathologies'}
             </span>
           </div>
 

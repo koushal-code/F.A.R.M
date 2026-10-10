@@ -39,7 +39,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
                 {t.calculatorTitle}
               </h3>
               <p className="text-xs text-[#8abda9]">
-                Accurate dilution prevents leaf scorch and ensures pest kill
+                {t.dosageCalcSubtitle || 'Accurate dilution prevents leaf scorch and ensures pest kill'}
               </p>
             </div>
           </div>
@@ -57,7 +57,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
           {/* Preset tank sizes */}
           <div>
             <label className="block text-xs font-bold text-[#404945] mb-2">
-              Select Your Knapsack or Spray Tank Capacity:
+              {t.knapsackCapacityLabel || 'Select Your Knapsack or Spray Tank Capacity:'}
             </label>
             <div className="grid grid-cols-5 gap-2">
               {[12, 16, 20, 25, 200].map((liters) => (
@@ -70,7 +70,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
                       : 'bg-[#f4fbf4] text-[#161d19] border-[#c0c9c3] hover:bg-[#e8f0e9]'
                   }`}
                 >
-                  {liters} Liters
+                  {liters} {t.litersLabel || 'Liters'}
                 </button>
               ))}
             </div>
@@ -80,7 +80,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-[#404945] mb-1">
-                Dosage Rate (g or ml / L)
+                {t.dosageOnPack} (g / ml / L)
               </label>
               <input
                 type="number"
@@ -91,13 +91,13 @@ export const DosageModal: React.FC<DosageModalProps> = ({
                 className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
               />
               <span className="text-[10px] text-[#707974] mt-0.5 block">
-                Standard: 2.0g - 3.0g / L
+                {t.standardDosageHint || 'Standard: 2.0g - 3.0g / L'}
               </span>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-[#404945] mb-1">
-                Farm Area (Acres)
+                {t.farmAreaAcres || 'Farm Area (Acres)'}
               </label>
               <input
                 type="number"
@@ -108,7 +108,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
                 className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
               />
               <span className="text-[10px] text-[#707974] mt-0.5 block">
-                1 acre ≈ 4,046 m²
+                {t.acreHint || '1 acre ≈ 4,046 m²'}
               </span>
             </div>
           </div>
@@ -117,28 +117,28 @@ export const DosageModal: React.FC<DosageModalProps> = ({
           <div className="p-4 rounded-xl bg-[#eef5ef] border border-[#a0f399] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#a0f399]/40">
               <span className="text-xs font-bold text-[#1b4d3e]">
-                For 1 Full {tankSize}L Tank:
+                {t.forOneFullTank || 'For 1 Full Tank:'} ({tankSize}L):
               </span>
               <span className="font-display text-base font-extrabold text-[#003629]">
-                {totalPerTank} grams / ml
+                {totalPerTank} g / ml
               </span>
             </div>
 
             <div className="flex items-center justify-between pb-2 border-b border-[#a0f399]/40">
               <span className="text-xs font-bold text-[#1b4d3e]">
-                Tanks Needed for {plotAcres} Acre(s):
+                {t.tanksNeededForPlot || 'Tanks Needed:'} ({plotAcres} ac):
               </span>
               <span className="font-display text-base font-extrabold text-[#003629]">
-                ~{totalTanksForPlot} Tanks
+                ~{totalTanksForPlot}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#1b4d3e]">
-                Total Chemical Required:
+                {t.totalChemicalRequired || 'Total Chemical Required:'}
               </span>
               <span className="font-display text-base font-extrabold text-[#1b6d24]">
-                ~{totalChemicalForPlot} grams / ml
+                ~{totalChemicalForPlot} g / ml
               </span>
             </div>
           </div>
@@ -147,7 +147,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
           <div className="p-3 rounded-lg bg-[#f4fbf4] border border-[#dde4de] text-[11px] text-[#404945] flex items-start gap-2">
             <Info className="w-4 h-4 text-[#1b6d24] flex-shrink-0 mt-0.5" />
             <p>
-              Always add chemical into half a bucket of clean water first, stir thoroughly, then pour into the main tank and top up with clean water to avoid nozzle clogging.
+              {t.mixingSafetyTip || 'Always add chemical into half a bucket of clean water first, stir thoroughly, then pour into the main tank and top up with clean water to avoid nozzle clogging.'}
             </p>
           </div>
         </div>
@@ -158,7 +158,7 @@ export const DosageModal: React.FC<DosageModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-[#003629] text-white text-xs font-bold hover:bg-[#1b4d3e] transition-colors"
           >
-            Done
+            {t.doneBtn || 'Done'}
           </button>
         </div>
       </div>

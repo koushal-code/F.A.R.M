@@ -78,7 +78,7 @@ export interface HistoryItem {
   diagnosis: CropDiagnosis;
 }
 
-export type SupportedLanguage = 'en' | 'hi' | 'te' | 'kn' | 'ta';
+export type SupportedLanguage = 'en' | 'hi' | 'te' | 'kn' | 'ta' | 'gu';
 
 export type AndroidAppTab = 'scan' | 'diagnosis' | 'calculator' | 'guide' | 'history';
 

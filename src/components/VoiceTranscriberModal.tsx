@@ -16,7 +16,8 @@ const INDIAN_LANG_NAMES: Record<SupportedLanguage, { label: string; native: stri
   hi: { label: 'Hindi', native: 'हिन्दी' },
   te: { label: 'Telugu', native: 'తెలుగు' },
   kn: { label: 'Kannada', native: 'ಕನ್ನಡ' },
-  ta: { label: 'Tamil', native: 'தமிழ்' }
+  ta: { label: 'Tamil', native: 'தமிழ்' },
+  gu: { label: 'Gujarati', native: 'ગુજરાતી' }
 };
 
 export const VoiceTranscriberModal: React.FC<VoiceTranscriberModalProps> = ({

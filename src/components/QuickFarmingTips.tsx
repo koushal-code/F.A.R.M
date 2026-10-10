@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { SupportedLanguage } from '../types/farm';
 import { QUICK_FARMING_TIPS, FarmingTip } from '../data/farmingTips';
+import { TRANSLATIONS } from '../data/translations';
 
 interface QuickFarmingTipsProps {
   currentLang: SupportedLanguage;
@@ -31,6 +32,7 @@ const STORAGE_CACHE_KEY = 'farm_offline_farming_tips';
 const STORAGE_BOOKMARKS_KEY = 'farm_bookmarked_tips';
 
 export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang }) => {
+  const t = TRANSLATIONS[currentLang];
   const [tips, setTips] = useState<FarmingTip[]>(QUICK_FARMING_TIPS);
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'spray' | 'pest' | 'disease'>('all');
@@ -121,9 +123,10 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
       hi: 'hi-IN',
       te: 'te-IN',
       kn: 'kn-IN',
-      ta: 'ta-IN'
+      ta: 'ta-IN',
+      gu: 'gu-IN'
     };
-    utterance.lang = langCodes[currentLang] || 'en-IN';
+    utterance.lang = langCodes[currentLang] || 'gu-IN';
     utterance.rate = 0.95;
 
     utterance.onend = () => setActiveSpeechId(null);
@@ -139,10 +142,10 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
   });
 
   const categories = [
-    { id: 'all', label: { en: 'All Tips', hi: 'सभी सुझाव', te: 'అన్ని చిట్కాలు', kn: 'ಎಲ್ಲಾ ಸಲಹೆಗಳು', ta: 'அனைத்து குறிப்புகள்' }, icon: Sparkles },
-    { id: 'spray', label: { en: 'Spraying', hi: 'छिड़काव', te: 'పిచికారీ', kn: 'ಸಿಂಪಡಣೆ', ta: 'தெளித்தல்' }, icon: Droplets },
-    { id: 'pest', label: { en: 'Pests & Traps', hi: 'कीट और जाल', te: 'పురుగులు & బుట్టలు', kn: 'ಕೀಟ & ಬಲೆ', ta: 'பூச்சிகள் & பொறிகள்' }, icon: Bug },
-    { id: 'disease', label: { en: 'Root & Disease', hi: 'रोग और जड़', te: 'తెగుళ్లు & వేరు', kn: 'ರೋಗ & ಬೇರು', ta: 'வேர் & நோய்கள்' }, icon: ShieldAlert },
+    { id: 'all', label: { en: 'All Tips', hi: 'सभी सुझाव', te: 'అన్ని చిట్కాలు', kn: 'ಎಲ್ಲಾ ಸಲಹೆಗಳು', ta: 'அனைத்து குறிப்புகள்', gu: 'બધા સૂચનો' }, icon: Sparkles },
+    { id: 'spray', label: { en: 'Spraying', hi: 'छिड़काव', te: 'పిచికారీ', kn: 'ಸಿಂಪಡಣೆ', ta: 'தெளித்தல்', gu: 'છંટકાવ' }, icon: Droplets },
+    { id: 'pest', label: { en: 'Pests & Traps', hi: 'कीट और जाल', te: 'పురుగులు & బుట్టలు', kn: 'ಕೀಟ & ಬಲೆ', ta: 'பூச்சிகள் & பொறிகள்', gu: 'જીવાત અને ટ્રેપ' }, icon: Bug },
+    { id: 'disease', label: { en: 'Root & Disease', hi: 'रोग और जड़', te: 'తెగుళ్లు & వేరు', kn: 'ರೋಗ & ಬೇರು', ta: 'வேர் & நோய்கள்', gu: 'રોગ અને મૂળ' }, icon: ShieldAlert },
   ];
 
   const sectionHeadings: Record<SupportedLanguage, { title: string; subtitle: string; cachedMsg: string; offlineReady: string }> = {
@@ -175,6 +178,12 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
       subtitle: 'இணையம் இல்லாதபோதும் படிக்க ஆஃப்லைனில் சேமிக்கப்பட்ட பயிர் குறிப்புகள்',
       cachedMsg: 'ஆஃப்லைனில் படிக்க சேமிக்கப்பட்டது',
       offlineReady: 'ஆஃப்லைன் பயன்முறை'
+    },
+    gu: {
+      title: 'ખેતી ઉપયોગી મહત્વપૂર્ણ ટિપ્સ',
+      subtitle: 'ઇન્ટરનેટ વગર ખેતરમાં ઉપયોગ કરવા માટે ઑફલાઇન સંગ્રહિત માર્ગદર્શન',
+      cachedMsg: 'ઑફલાઇન વાંચવા માટે સંગ્રહિત',
+      offlineReady: 'ઑફલાઇન મોડ સક્રિય'
     }
   };
 
@@ -322,7 +331,7 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                   <div className="p-3 rounded-xl bg-[#eef5ef] border border-[#a0f399] space-y-1">
                     <div className="flex items-center gap-1.5 font-bold text-[#1b6d24]">
                       <Sprout className="w-3.5 h-3.5 flex-shrink-0 text-[#1b6d24]" />
-                      <span>Field Recommendation</span>
+                      <span>{t.fieldRecommendationLabel || 'Field Recommendation'}</span>
                     </div>
                     <p className="text-xs text-[#003629] font-medium leading-relaxed">
                       {tip.keyRecommendation[currentLang] || tip.keyRecommendation.en}
@@ -334,7 +343,7 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                     <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
                       <div>
-                        <strong className="text-emerald-900 block font-bold text-[11px] mb-0.5">DO:</strong>
+                        <strong className="text-emerald-900 block font-bold text-[11px] mb-0.5">{t.doLabel || 'DO:'}</strong>
                         <span className="text-emerald-950 text-[11px] leading-relaxed">
                           {tip.dosAndDonts.dos[currentLang] || tip.dosAndDonts.dos.en}
                         </span>
@@ -344,7 +353,7 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                     <div className="p-2.5 rounded-xl bg-red-50/70 border border-red-200 flex items-start gap-2">
                       <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                       <div>
-                        <strong className="text-red-900 block font-bold text-[11px] mb-0.5">DON'T:</strong>
+                        <strong className="text-red-900 block font-bold text-[11px] mb-0.5">{t.dontLabel || "DON'T:"}</strong>
                         <span className="text-red-950 text-[11px] leading-relaxed">
                           {tip.dosAndDonts.donts[currentLang] || tip.dosAndDonts.donts.en}
                         </span>
@@ -365,12 +374,12 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                       {isSpeaking ? (
                         <>
                           <VolumeX className="w-3.5 h-3.5" />
-                          <span>Stop Voice</span>
+                          <span>{t.stopVoice || 'Stop Voice'}</span>
                         </>
                       ) : (
                         <>
                           <Volume2 className="w-3.5 h-3.5 text-[#a0f399]" />
-                          <span>Listen (TTS)</span>
+                          <span>{t.listenTts || 'Listen (TTS)'}</span>
                         </>
                       )}
                     </button>
@@ -382,12 +391,12 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                       {isCopied ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Copied</span>
+                          <span>{t.copied || 'Copied'}</span>
                         </>
                       ) : (
                         <>
                           <Share2 className="w-3.5 h-3.5" />
-                          <span>Share Tip</span>
+                          <span>{t.shareTip || 'Share Tip'}</span>
                         </>
                       )}
                     </button>

@@ -39,6 +39,9 @@ app.get(['/manifest.json', '/manifest.webmanifest'], (_req, res) => {
 // Serve Service Worker with proper header and open CORS
 app.get('/sw.js', (_req, res) => {
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.setHeader('Service-Worker-Allowed', '/');
   res.setHeader('Access-Control-Allow-Origin', '*');
   const swFile = path.resolve(__dirname, 'public', 'sw.js');
@@ -70,7 +73,8 @@ const LANG_NAMES: Record<string, string> = {
   hi: 'Hindi (हिन्दी)',
   te: 'Telugu (తెలుగు)',
   kn: 'Kannada (ಕನ್ನಡ)',
-  ta: 'Tamil (தமிழ்)'
+  ta: 'Tamil (தமிழ்)',
+  gu: 'Gujarati (ગુજરાતી)'
 };
 
 // Candidate models for highest resilience & low latency
@@ -115,7 +119,7 @@ async function queryPlantIdHealth(cleanBase64: string, customApiKey?: string) {
 // REST API: GET /api/samples
 app.get('/api/samples', (req, res) => {
   const lang = (req.query.lang as string) || 'en';
-  const validLang = (['en', 'hi', 'te', 'kn', 'ta'].includes(lang) ? lang : 'en') as any;
+  const validLang = (['en', 'hi', 'te', 'kn', 'ta', 'gu'].includes(lang) ? lang : 'en') as any;
   const samples = getLocalizedSamples(validLang);
   res.json({ success: true, samples });
 });
@@ -129,7 +133,7 @@ app.get('/api/ai-status', (_req, res) => {
     provider: 'Hybrid Agricultural Diagnostic Pipeline',
     hasPlantId: Boolean(process.env.PLANT_ID_API_KEY),
     plantIdModel: 'Kindwise Plant.id v3 Health Assessment',
-    supportedLanguages: ['en', 'hi', 'te', 'kn', 'ta'],
+    supportedLanguages: ['en', 'hi', 'te', 'kn', 'ta', 'gu'],
     fallbackEngines: ['gemini-3.1-flash-lite', 'localized-knowledge-engine']
   });
 });
@@ -292,7 +296,8 @@ app.post('/api/transcribe', async (req, res) => {
       hi: 'ऑडियो को शुद्ध हिन्दी (देवनागरी लिपि) में ट्रांसक्राइब करें। केवल बोले गए शब्द लिखें, कोई अतिरिक्त टिप्पणी न करें।',
       te: 'ఆడియోను స్వచ్ఛమైన తెలుగు లిపిలో (Telugu script) మాత్రమే ట్రాన్స్‌క్రైబ్ చేయండి. ఎటువంటి వివరణలు లేదా ఆంగ్ల అనువాదం లేకుండా రైతు మాట్లాడిన మాటలను యథాతథంగా రాయండి.',
       kn: 'ಆಡಿಯೋವನ್ನು ಶುದ್ಧ ಕನ್ನಡ ಲಿಪಿಯಲ್ಲಿ (Kannada script) ಮಾತ್ರ ಟ್ರಾನ್ಸ್‌ಸ್ಕ್ರೈಬ್ ಮಾಡಿ. ಯಾವುದೇ ಹೆಚ್ಚುವರಿ ವಿವರಣೆ ಬೇಡ.',
-      ta: 'ஆடியோவை தூய தமிழ் எழுத்துக்களில் (Tamil script) மட்டும் டிரான்ஸ்கிரைப் செய்யவும். கூடுதல் விளக்கம் எதுவும் தேவையில்லை.'
+      ta: 'ஆடியோவை தூய தமிழ் எழுத்துக்களில் (Tamil script) மட்டும் டிரான்ஸ்கிரைப் செய்யவும். கூடுதல் விளக்கம் எதுவும் தேவையில்லை.',
+      gu: 'ઑડિયોને શુદ્ધ ગુજરાતી લિપિમાં (Gujarati script) જ ટ્રાન્સક્રાઇબ કરો. ખેડૂતે બોલેલા શબ્દો જ લખો, કોઈ અંગ્રેજી અનુવાદ કે વધારાની ટિપ્પણી ન કરવી.'
     };
 
     const instruction = langInstructions[lang] || langInstructions.en;
@@ -531,17 +536,17 @@ Return valid JSON adhering to this exact schema:
     let fallbackId = sampleId || 'sample-tomato-late-blight';
     if (!sampleId && cropHint) {
       const lowerHint = cropHint.toLowerCase();
-      if (lowerHint.includes('paddy') || lowerHint.includes('rice') || lowerHint.includes('వరి') || lowerHint.includes('धान')) {
+      if (lowerHint.includes('paddy') || lowerHint.includes('rice') || lowerHint.includes('వరి') || lowerHint.includes('धान') || lowerHint.includes('ડાંગર') || lowerHint.includes('ચોખા')) {
         fallbackId = 'sample-rice-blast';
-      } else if (lowerHint.includes('cotton') || lowerHint.includes('పత్తి') || lowerHint.includes('कपास')) {
+      } else if (lowerHint.includes('cotton') || lowerHint.includes('పత్తి') || lowerHint.includes('कपास') || lowerHint.includes('કપાસ')) {
         fallbackId = 'sample-cotton-leaf-curl';
-      } else if (lowerHint.includes('maize') || lowerHint.includes('corn') || lowerHint.includes('మొక్కజొన్న') || lowerHint.includes('मक्का')) {
+      } else if (lowerHint.includes('maize') || lowerHint.includes('corn') || lowerHint.includes('మొక్కజొన్న') || lowerHint.includes('मक्का') || lowerHint.includes('મકાઈ')) {
         fallbackId = 'sample-maize-fall-armyworm';
-      } else if (lowerHint.includes('chilli') || lowerHint.includes('మిరప') || lowerHint.includes('मिर्च')) {
+      } else if (lowerHint.includes('chilli') || lowerHint.includes('మిరప') || lowerHint.includes('मिर्च') || lowerHint.includes('મરચી') || lowerHint.includes('મરચું')) {
         fallbackId = 'sample-chilli-anthracnose';
-      } else if (lowerHint.includes('potato') || lowerHint.includes('బంగాళాదుంప') || lowerHint.includes('आलू')) {
+      } else if (lowerHint.includes('potato') || lowerHint.includes('బంగాళాదుంప') || lowerHint.includes('आलू') || lowerHint.includes('બટાકા') || lowerHint.includes('બટાટા')) {
         fallbackId = 'sample-potato-early-blight';
-      } else if (lowerHint.includes('wheat') || lowerHint.includes('గోధుమ') || lowerHint.includes('गेहूं')) {
+      } else if (lowerHint.includes('wheat') || lowerHint.includes('గోధుమ') || lowerHint.includes('गेहूं') || lowerHint.includes('ઘઉં')) {
         fallbackId = 'sample-wheat-healthy';
       }
     }
@@ -568,7 +573,6 @@ async function startServer() {
       server: {
         middlewareMode: true,
         hmr: false,
-        watch: null,
       },
       appType: 'spa'
     });

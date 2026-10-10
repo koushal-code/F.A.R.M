@@ -36,7 +36,7 @@ export const ScanHistoryModal: React.FC<ScanHistoryModalProps> = ({
                 {t.recentScans}
               </h3>
               <p className="text-xs text-[#8abda9]">
-                Compare previous disease records and recovery progress
+                {t.recentScansSubtitle || 'Compare previous disease records and recovery progress'}
               </p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export const ScanHistoryModal: React.FC<ScanHistoryModalProps> = ({
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-[#003629] text-white text-xs font-bold hover:bg-[#1b4d3e] transition-colors"
           >
-            Close
+            {t.closeBtn || 'Close'}
           </button>
         </div>
       </div>

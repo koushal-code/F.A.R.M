@@ -1,4 +1,5 @@
-import { History, Trash2, ArrowRight, Cloud, LogIn } from 'lucide-react';
+import React from 'react';
+import { History, Trash2, ArrowRight } from 'lucide-react';
 import { HistoryItem, SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 
@@ -8,8 +9,6 @@ interface HistoryPageProps {
   onClearHistory: () => void;
   currentLang: SupportedLanguage;
   onStartNewScan: () => void;
-  user?: any | null;
-  onSignIn?: () => void;
 }
 
 export const HistoryPage: React.FC<HistoryPageProps> = ({
@@ -18,8 +17,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
   onClearHistory,
   currentLang,
   onStartNewScan,
-  user,
-  onSignIn,
 }) => {
   const t = TRANSLATIONS[currentLang];
 
@@ -50,37 +47,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </button>
         )}
       </div>
-
-      {/* Cloud Sync Status */}
-      {user ? (
-        <div className="bg-[#eef5ef] border border-[#a0f399] p-3.5 rounded-2xl flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5 text-[#003629]">
-            <Cloud className="w-4 h-4 text-[#1b6d24] flex-shrink-0" />
-            <span className="font-semibold">
-              Synced with Firebase Firestore as <strong className="text-[#1b6d24]">{user.displayName || user.email}</strong>
-            </span>
-          </div>
-          <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-[#1b6d24] text-white">
-            Cloud Synced
-          </span>
-        </div>
-      ) : (
-        <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5 text-amber-900">
-            <Cloud className="w-4 h-4 text-amber-700 flex-shrink-0" />
-            <span>Sign in to store and sync your crop diagnosis records permanently to the Firebase database.</span>
-          </div>
-          {onSignIn && (
-            <button
-              onClick={onSignIn}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#003629] text-white font-bold hover:bg-[#1b4d3e] transition-colors self-start sm:self-auto"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Sign In with Google</span>
-            </button>
-          )}
-        </div>
-      )}
 
       {/* History List or Empty State */}
       {history.length === 0 ? (

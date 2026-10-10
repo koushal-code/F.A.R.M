@@ -76,7 +76,8 @@ export const DiagnosisResult: React.FC<DiagnosisResultProps> = ({
       hi: 'hi-IN',
       te: 'te-IN',
       kn: 'kn-IN',
-      ta: 'ta-IN'
+      ta: 'ta-IN',
+      gu: 'gu-IN'
     };
     utterance.lang = langMap[currentLang] || 'en-US';
     utterance.rate = 0.95; // Slightly slower for clarity in field conditions
