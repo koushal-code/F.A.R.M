@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Farmer profile and preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "preferredLanguage": { "type": "string", "enum": ["en", "hi", "te", "kn", "ta"] },
+        "locationName": { "type": "string", "maxLength": 200 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "createdAt"]
+    },
+    "CropScan": {
+      "title": "CropScan",
+      "description": "Plant disease and pest diagnosis record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "cropName": { "type": "string", "maxLength": 100 },
+        "diagnosisName": { "type": "string", "maxLength": 150 },
+        "severityLevel": { "type": "string", "maxLength": 50 },
+        "healthScore": { "type": "number" },
+        "confidenceScore": { "type": "number" },
+        "imageUrl": { "type": "string", "maxLength": 10000 },
+        "locationName": { "type": "string", "maxLength": 200 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "diagnosisData": { "type": "string", "maxLength": 50000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "cropName", "diagnosisName", "severityLevel", "healthScore"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Farmer profile document keyed by user auth UID"
+    },
+    "/users/{userId}/scans/{scanId}": {
+      "schema": "CropScan",
+      "description": "Historical crop diagnosis records owned by the authenticated farmer"
+    }
+  }
+}

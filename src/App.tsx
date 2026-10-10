@@ -17,6 +17,15 @@ import { CropSample, CropDiagnosis, HistoryItem, SupportedLanguage, AndroidAppTa
 import { TRANSLATIONS } from './data/translations';
 import { getLocalizedSamples } from './data/samples';
 import { AlertCircle, Scan } from 'lucide-react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { 
+  auth, 
+  signInWithGoogle, 
+  logOut, 
+  testConnection, 
+  saveScanToFirestore, 
+  fetchUserScansFromFirestore 
+} from './services/firebase';
 
 const STORAGE_KEY_HISTORY = 'farm_crop_scan_history';
 const STORAGE_KEY_LANG = 'farm_crop_preferred_lang';
@@ -39,6 +48,59 @@ export default function App() {
   const [isFlutterModalOpen, setIsFlutterModalOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
 
+  // Firebase Authentication & Cloud Sync state
+  const [user, setUser] = useState<User | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Validate connection to Firestore on initial boot
+    testConnection();
+
+    // Listen to Firebase authentication state
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsSyncing(true);
+        try {
+          const cloudScans = await fetchUserScansFromFirestore(currentUser.uid);
+          if (cloudScans && cloudScans.length > 0) {
+            setHistory(prev => {
+              // Combine cloud scans with local scans, eliminating duplicates by ID
+              const existingIds = new Set(cloudScans.map(s => s.id));
+              const localUnsynced = prev.filter(p => !existingIds.has(p.id));
+              
+              // Upload any local scans made while offline/signed out to Firestore
+              localUnsynced.forEach(scan => {
+                saveScanToFirestore(currentUser.uid, scan).catch(console.error);
+              });
+
+              const merged = [...cloudScans, ...localUnsynced].slice(0, 30);
+              localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(merged));
+              return merged;
+            });
+          } else {
+            // User has no cloud scans yet, upload current local scans if any
+            const savedLocal = localStorage.getItem(STORAGE_KEY_HISTORY);
+            if (savedLocal) {
+              try {
+                const parsed: HistoryItem[] = JSON.parse(savedLocal);
+                parsed.forEach(scan => {
+                  saveScanToFirestore(currentUser.uid, scan).catch(console.error);
+                });
+              } catch (_e) {}
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to load cloud scans from Firestore:', err);
+        } finally {
+          setIsSyncing(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const savedLang = localStorage.getItem(STORAGE_KEY_LANG) as SupportedLanguage;
     if (savedLang) {
@@ -58,6 +120,26 @@ export default function App() {
       }
     }
   }, []);
+
+  const handleSignIn = async () => {
+    try {
+      setErrorMessage(null);
+      await signInWithGoogle();
+    } catch (err: any) {
+      console.error('Google Sign-in error:', err);
+      if (!err.message?.includes('popup-closed-by-user')) {
+        setErrorMessage(err.message || 'Failed to complete Google Sign-in');
+      }
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+    } catch (err: any) {
+      console.error('Sign-out error:', err);
+    }
+  };
 
   const handleLanguageChange = (lang: SupportedLanguage) => {
     setCurrentLang(lang);
@@ -149,9 +231,16 @@ export default function App() {
         diagnosis: result
       };
 
-      const updatedHistory = [newHistoryItem, ...history.slice(0, 19)];
+      const updatedHistory = [newHistoryItem, ...history.slice(0, 29)];
       setHistory(updatedHistory);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(updatedHistory));
+
+      // Persist to Firebase Firestore if farmer is authenticated
+      if (user) {
+        saveScanToFirestore(user.uid, newHistoryItem).catch((err) => {
+          console.warn('Failed to save scan record to Firestore:', err);
+        });
+      }
 
       setActiveTab('diagnosis');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -207,6 +296,10 @@ export default function App() {
         onToggleHighContrast={handleToggleHighContrast}
         onOpenFlutterExport={() => setIsFlutterModalOpen(true)}
         onOpenAiSetup={() => setIsAiModalOpen(true)}
+        user={user}
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
+        isSyncing={isSyncing}
       />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-3.5 sm:py-6 pb-28 sm:pb-32 space-y-4 sm:space-y-6">
@@ -289,6 +382,8 @@ export default function App() {
             onClearHistory={handleClearHistory}
             currentLang={currentLang}
             onStartNewScan={() => setActiveTab('scan')}
+            user={user}
+            onSignIn={handleSignIn}
           />
         )}
       </main>

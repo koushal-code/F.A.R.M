@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "FARM - Crop Health AI",
-  "short_name": "FARM AI",
-  "description": "Precision agricultural diagnostic tool for farmers to detect crop diseases and pest infestations with offline recovery guidelines.",
+  "name": "FARM - Farmer's Advisory & Resource Module",
+  "short_name": "FARM",
+  "description": "Farmer's Advisory & Resource Module - Precision agricultural diagnostic tool for farmers to detect crop diseases and pest infestations with offline recovery guidelines.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -16,85 +16,28 @@
   "categories": ["agriculture", "productivity", "utilities", "education"],
   "icons": [
     {
+      "src": "/farm-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/farm-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "FARM Crop Health AI Mobile Scanner"
-    },
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1280x800",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "FARM Crop Health AI Diagnostic Overview"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Scan Crop Specimen",
-      "short_name": "Scan",
-      "description": "Scan a crop leaf or pest specimen",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Crop Pathology Guide",
-      "short_name": "Guide",
-      "description": "Browse pest and crop guide library",
-      "url": "/?tab=guide",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Dosage Calculator",
-      "short_name": "Dosage",
-      "description": "Calculate knapsack sprayer dosage",
-      "url": "/?tab=calculator",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
     }
   ]
 }

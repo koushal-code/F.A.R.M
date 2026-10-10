@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "FARM - Crop Health AI",
-  "short_name": "FARM AI",
-  "description": "Precision agricultural diagnostic tool for farmers to detect crop diseases and pest infestations with offline recovery guidelines.",
+  "name": "FARM - Farmer's Advisory & Resource Module",
+  "short_name": "FARM",
+  "description": "Farmer's Advisory & Resource Module - Precision agricultural diagnostic tool for farmers to detect crop diseases and pest infestations with offline recovery guidelines.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -15,6 +15,18 @@
   "prefer_related_applications": false,
   "categories": ["agriculture", "productivity", "utilities", "education"],
   "icons": [
+    {
+      "src": "/farm-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/farm-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

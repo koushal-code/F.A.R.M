@@ -1,8 +1,8 @@
-import React from 'react';
-import { Sprout, Sun, CloudRain, Wind, Globe, History, Calculator, Sparkles } from 'lucide-react';
+import { Sun, CloudRain, Wind, Globe, History, Calculator, Sparkles } from 'lucide-react';
 import { SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { RealtimeWeather } from '../services/weatherService';
+import { FarmLogo } from './FarmLogo';
 
 interface HeaderProps {
   currentLang: SupportedLanguage;
@@ -65,8 +65,8 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main navigation & brand identity */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#003629] text-[#a0f399] flex items-center justify-center shadow-md border border-[#1b4d3e]">
-            <Sprout className="w-6 h-6 stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-xl bg-white text-[#003629] flex items-center justify-center shadow-md border border-[#a0f399]/60 overflow-hidden p-0.5">
+            <FarmLogo size={38} showWordmark={false} className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">

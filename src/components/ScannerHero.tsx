@@ -4,6 +4,7 @@ import { CropSample, SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
 import { QuickFarmingTips } from './QuickFarmingTips';
+import { FarmLogo } from './FarmLogo';
 
 interface ScannerHeroProps {
   currentLang: SupportedLanguage;
@@ -196,8 +197,8 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               </div>
             ) : (
               <div className="w-full flex flex-col items-center text-center py-4 sm:py-6">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#e8f0e9] text-[#1b6d24] flex items-center justify-center mb-3">
-                  <Scan className="w-7 h-7 sm:w-8 sm:h-8" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white shadow-sm border border-[#a0f399] flex items-center justify-center mb-3 p-1.5 overflow-hidden">
+                  <FarmLogo size={64} showWordmark={false} className="w-full h-full object-contain" />
                 </div>
                 <h3 className="font-display text-base sm:text-lg font-bold text-[#161d19] mb-1">
                   {t.captureOrUpload}
