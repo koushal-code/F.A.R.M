@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { BookOpen, Search, Bug, Sparkles, ShieldCheck, Droplets, Leaf } from 'lucide-react';
-import { GuideCrop, SupportedLanguage } from '../types/farm';
+import { GuideCrop, SupportedLanguage, FarmerProfile } from '../types/farm';
 import { CROP_GUIDE_DATA } from '../data/cropGuide';
 import { TRANSLATIONS } from '../data/translations';
 
 interface CropGuidePageProps {
   currentLang: SupportedLanguage;
   onSelectCropForScan?: (cropName: string) => void;
+  farmerProfile?: FarmerProfile | null;
 }
 
 export const CropGuidePage: React.FC<CropGuidePageProps> = ({
   currentLang,
   onSelectCropForScan,
+  farmerProfile,
 }) => {
   const t = TRANSLATIONS[currentLang];
   const [selectedCrop, setSelectedCrop] = useState<GuideCrop>(CROP_GUIDE_DATA[0]);
@@ -65,6 +67,10 @@ export const CropGuidePage: React.FC<CropGuidePageProps> = ({
           {filteredCrops.map((crop) => {
             const isSelected = selectedCrop.id === crop.id;
             const localName = crop.vernacular[currentLang] || crop.name;
+            const isMyCrop = farmerProfile?.primaryCrops.some(c => 
+              c.toLowerCase().includes(crop.name.toLowerCase()) || 
+              crop.name.toLowerCase().includes(c.split('(')[0].trim().toLowerCase())
+            );
 
             return (
               <button
@@ -73,7 +79,9 @@ export const CropGuidePage: React.FC<CropGuidePageProps> = ({
                 className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border whitespace-nowrap transition-all flex-shrink-0 min-h-[42px] ${
                   isSelected
                     ? 'bg-[#003629] text-white border-[#003629] shadow-sm ring-2 ring-[#a0f399] scale-[1.02]'
-                    : 'bg-white text-[#161d19] border-[#c0c9c3] hover:bg-[#eef5ef] active:bg-[#e8f0e9]'
+                    : isMyCrop
+                      ? 'bg-emerald-50 text-[#003629] border-emerald-300 hover:bg-emerald-100'
+                      : 'bg-white text-[#161d19] border-[#c0c9c3] hover:bg-[#eef5ef] active:bg-[#e8f0e9]'
                 }`}
               >
                 <img
@@ -82,6 +90,11 @@ export const CropGuidePage: React.FC<CropGuidePageProps> = ({
                   className="w-6 h-6 rounded-full object-cover border border-white/30"
                 />
                 <span>{localName}</span>
+                {isMyCrop && !isSelected && (
+                  <span className="text-[9px] px-1 py-0.2 rounded-full bg-emerald-200 text-emerald-900 font-extrabold">
+                    My Crop
+                  </span>
+                )}
               </button>
             );
           })}

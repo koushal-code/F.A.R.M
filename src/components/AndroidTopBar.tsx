@@ -17,7 +17,7 @@ import {
   Activity,
   Layers
 } from 'lucide-react';
-import { SupportedLanguage } from '../types/farm';
+import { SupportedLanguage, FarmerProfile } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { RealtimeWeather, REGION_PRESETS, fetchLiveWeather } from '../services/weatherService';
 import { 
@@ -34,6 +34,8 @@ interface AndroidTopBarProps {
   onToggleHighContrast: () => void;
   onOpenFlutterExport?: () => void;
   onOpenAiSetup?: () => void;
+  farmerProfile?: FarmerProfile | null;
+  onOpenProfileModal?: () => void;
 }
 
 const INDIAN_LANGUAGES: { code: SupportedLanguage; label: string; script: string }[] = [
@@ -52,6 +54,8 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
   onToggleHighContrast,
   onOpenFlutterExport,
   onOpenAiSetup,
+  farmerProfile,
+  onOpenProfileModal,
 }) => {
   const t = TRANSLATIONS[currentLang];
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -81,9 +85,13 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
   };
 
   useEffect(() => {
-    const locLabel = currentRegion.name[currentLang] || currentRegion.name.en;
-    loadWeather(currentRegion.lat, currentRegion.lon, locLabel);
-  }, [currentRegion, currentLang]);
+    if (farmerProfile?.latitude && farmerProfile?.longitude) {
+      loadWeather(farmerProfile.latitude, farmerProfile.longitude, farmerProfile.displayName);
+    } else {
+      const locLabel = currentRegion.name[currentLang] || currentRegion.name.en;
+      loadWeather(currentRegion.lat, currentRegion.lon, locLabel);
+    }
+  }, [farmerProfile, currentRegion, currentLang]);
 
   // Clean up GPS watcher on unmount
   useEffect(() => {
@@ -186,7 +194,7 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
             >
               <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
               <span className="truncate">
-                {regionalAddress?.displayName || weather?.locationName || currentRegion.name[currentLang]}
+                {farmerProfile?.displayName || regionalAddress?.displayName || weather?.locationName || currentRegion.name[currentLang]}
               </span>
               <ChevronDown className="w-2.5 h-2.5 text-[#8abda9] flex-shrink-0" />
             </button>
@@ -194,11 +202,31 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
             {isLocationMenuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsLocationMenuOpen(false)} />
-                <div className="absolute left-0 top-full mt-1.5 w-64 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute left-0 top-full mt-1.5 w-72 bg-white text-[#161d19] rounded-2xl shadow-2xl border border-[#c0c9c3] py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-3 py-1.5 text-[10px] font-black uppercase text-[#707974] border-b border-[#dde4de] flex items-center justify-between">
                     <span>{t.fieldLocation}</span>
                     <span className="text-[#1b6d24] font-bold">GNSS / GPS</span>
                   </div>
+
+                  {farmerProfile && (
+                    <button
+                      onClick={() => {
+                        setRegionalAddress(null);
+                        loadWeather(farmerProfile.latitude, farmerProfile.longitude, farmerProfile.displayName);
+                        setIsLocationMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-xs font-bold text-[#003629] bg-[#eef5ef] hover:bg-[#e0ece1] flex items-center justify-between border-b border-[#dde4de] transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Sprout className="w-4 h-4 text-[#1b6d24] flex-shrink-0" />
+                        <div className="truncate">
+                          <p className="font-extrabold text-[#003629] truncate">{farmerProfile.name}'s Farm</p>
+                          <p className="text-[10px] text-[#56605b] font-medium truncate">{farmerProfile.displayName}</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#1b6d24] text-white font-bold flex-shrink-0">Registered</span>
+                    </button>
+                  )}
 
                   <button
                     onClick={handleDetectGPS}
@@ -310,8 +338,27 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
             </div>
           </div>
 
-          {/* Action Controls: Live GPS, Language */}
+          {/* Action Controls: Farmer Profile, Live GPS, Language */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {/* Farmer Profile Button */}
+            <button
+              onClick={onOpenProfileModal}
+              title={farmerProfile ? `Farmer: ${farmerProfile.name} (${farmerProfile.displayName})` : 'Farmer Registration & Profile'}
+              className="h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
+            >
+              <div className="w-5 h-5 rounded-lg bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-[10px] flex-shrink-0">
+                {farmerProfile?.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
+              </div>
+              <div className="hidden xs:flex flex-col text-left leading-none max-w-[80px] sm:max-w-[110px]">
+                <span className="text-[11px] font-extrabold truncate text-white">
+                  {farmerProfile?.name || 'Kisan'}
+                </span>
+                <span className="text-[9px] text-[#a0f399] font-bold truncate">
+                  {farmerProfile?.district || 'Register'}
+                </span>
+              </div>
+            </button>
+
             {/* Live GPS Quick Button */}
             <button
               onClick={() => setIsGpsModalOpen(true)}

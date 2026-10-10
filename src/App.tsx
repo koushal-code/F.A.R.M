@@ -13,14 +13,17 @@ import { CropGuidePage } from './components/CropGuidePage';
 import { HistoryPage } from './components/HistoryPage';
 import { FlutterExportModal } from './components/FlutterExportModal';
 import { AiEngineModal } from './components/AiEngineModal';
-import { CropSample, CropDiagnosis, HistoryItem, SupportedLanguage, AndroidAppTab } from './types/farm';
+import { FarmerRegistrationModal } from './components/FarmerRegistrationModal';
+import { CropSample, CropDiagnosis, HistoryItem, SupportedLanguage, AndroidAppTab, FarmerProfile } from './types/farm';
 import { TRANSLATIONS } from './data/translations';
 import { getLocalizedSamples } from './data/samples';
+import { DEFAULT_FARMER_PROFILE } from './data/registrationData';
 import { AlertCircle, Scan, Cpu } from 'lucide-react';
 
 const STORAGE_KEY_HISTORY = 'farm_crop_scan_history';
 const STORAGE_KEY_LANG = 'farm_crop_preferred_lang';
 const STORAGE_KEY_CONTRAST = 'farm_crop_high_contrast';
+const STORAGE_KEY_FARMER_PROFILE = 'farm_farmer_profile';
 
 export default function App() {
   const [currentLang, setCurrentLang] = useState<SupportedLanguage>(() => {
@@ -47,6 +50,37 @@ export default function App() {
   const [isFlutterModalOpen, setIsFlutterModalOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
 
+  // Farmer profile & one-time registration state
+  const [farmerProfile, setFarmerProfile] = useState<FarmerProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_FARMER_PROFILE);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse farmer profile:', e);
+        }
+      }
+    }
+    return null;
+  });
+
+  const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY_FARMER_PROFILE);
+      // Auto-open on first time visit if no registered profile exists!
+      return !saved;
+    }
+    return false;
+  });
+
+  const [isInitialOnboarding, setIsInitialOnboarding] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !localStorage.getItem(STORAGE_KEY_FARMER_PROFILE);
+    }
+    return true;
+  });
+
   useEffect(() => {
     const savedLang = localStorage.getItem(STORAGE_KEY_LANG) as SupportedLanguage;
     if (savedLang && ['en', 'hi', 'te', 'kn', 'ta', 'gu'].includes(savedLang)) {
@@ -69,7 +103,31 @@ export default function App() {
         console.error('Failed to parse history:', e);
       }
     }
+
+    const savedProfile = localStorage.getItem(STORAGE_KEY_FARMER_PROFILE);
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile);
+        setFarmerProfile(parsed);
+        setIsInitialOnboarding(false);
+      } catch (e) {
+        console.error('Failed to parse saved farmer profile:', e);
+      }
+    } else {
+      setIsInitialOnboarding(true);
+      setIsRegistrationModalOpen(true);
+    }
   }, []);
+
+  const handleSaveProfile = (profile: FarmerProfile) => {
+    setFarmerProfile(profile);
+    localStorage.setItem(STORAGE_KEY_FARMER_PROFILE, JSON.stringify(profile));
+    setIsInitialOnboarding(false);
+
+    if (profile.preferredLanguage && profile.preferredLanguage !== currentLang) {
+      handleLanguageChange(profile.preferredLanguage);
+    }
+  };
 
   const handleLanguageChange = (lang: SupportedLanguage) => {
     setCurrentLang(lang);

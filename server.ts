@@ -375,7 +375,8 @@ app.post('/api/diagnose', async (req, res) => {
       cropHint, 
       additionalNotes, 
       lang = 'en',
-      customApiKey
+      customApiKey,
+      farmerProfile
     } = req.body;
 
     const targetLangName = LANG_NAMES[lang] || 'English';
@@ -411,10 +412,22 @@ app.post('/api/diagnose', async (req, res) => {
 Incorporate this verified diagnosis into your analysis, adapting all treatment protocols, Indian brands, and dosages to Indian agriculture.\n`
         : '';
 
+      const farmerRegionalContext = farmerProfile
+        ? `\nFARMER REGION & LOCATION CONTEXT:
+- State: "${farmerProfile.state || ''}"
+- District: "${farmerProfile.district || ''}"
+- Village / Field: "${farmerProfile.village || ''}"
+- Agro-Climatic Zone: "${farmerProfile.agroClimaticZone || ''}"
+- Soil Type: "${farmerProfile.soilType || ''}"
+- Farm Size: "${farmerProfile.landSizeAcres || 1} Acres"
+Tailor all treatment protocols, local pesticide recommendations, and spray timing specifically for the climatic and agro-ecological conditions of ${farmerProfile.state || 'this region'}.\n`
+        : '';
+
       const prompt = `You are FARM (Farmer's Advisory & Resource Module), an expert agronomist, crop pathologist, and entomologist for Indian agriculture.
 Analyze the provided crop leaf or pest specimen image.
 TARGET LANGUAGE: "${targetLangName}" (Language code: "${lang}").
 ${pathologyContext}
+${farmerRegionalContext}
 CRITICAL REQUIREMENT:
 All output text values inside the JSON MUST be written EXCLUSIVELY and PURITY in ${targetLangName}.
 DO NOT mix languages or include English translations in brackets or slashes (e.g. write "టమాటా", NOT "Tomato / టమాటా").

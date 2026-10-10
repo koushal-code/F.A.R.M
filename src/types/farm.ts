@@ -98,3 +98,24 @@ export interface GuideCrop {
   commonDiseases: GuideDisease[];
   criticalPeriod: Record<SupportedLanguage, string>;
 }
+
+export interface FarmerProfile {
+  id: string;
+  name: string;
+  phone: string;
+  state: string;
+  district: string;
+  subdistrict?: string;
+  village: string;
+  displayName: string;
+  latitude: number;
+  longitude: number;
+  agroClimaticZone: string;
+  soilType: string;
+  irrigationType: string;
+  landSizeAcres: number;
+  primaryCrops: string[];
+  preferredLanguage: SupportedLanguage;
+  registeredAt: string;
+  isRegistered: boolean;
+}

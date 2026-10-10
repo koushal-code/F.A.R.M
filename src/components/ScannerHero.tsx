@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Camera, Upload, Scan, CheckCircle2, ChevronRight, HelpCircle, Mic, Sparkles, Image as ImageIcon } from 'lucide-react';
-import { CropSample, SupportedLanguage } from '../types/farm';
+import { CropSample, SupportedLanguage, FarmerProfile } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { VoiceTranscriberModal } from './VoiceTranscriberModal';
 import { QuickFarmingTips } from './QuickFarmingTips';
@@ -15,6 +15,8 @@ interface ScannerHeroProps {
   onStartDiagnosis: (cropHint: string, notes: string) => void;
   isAnalyzing: boolean;
   previewImage: string | null;
+  farmerProfile?: FarmerProfile | null;
+  onOpenProfileModal?: () => void;
 }
 
 // Client-side image compressor for high-speed, reliable field uploads
@@ -77,6 +79,8 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
   onStartDiagnosis,
   isAnalyzing,
   previewImage,
+  farmerProfile,
+  onOpenProfileModal,
 }) => {
   const t = TRANSLATIONS[currentLang];
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +124,54 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
 
   return (
     <section className="w-full space-y-4">
+      {/* Personalized Farmer Field & Region Hub Banner */}
+      {farmerProfile && (
+        <div className="bg-gradient-to-r from-[#003629] via-[#004838] to-[#1b4d3e] text-white p-3.5 sm:p-4 rounded-2xl border border-[#a0f399]/40 shadow-sm flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-sm shadow-xs flex-shrink-0">
+              {farmerProfile.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-display font-black text-sm sm:text-base text-white truncate">
+                  {farmerProfile.name}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-[#a0f399] text-[#003629] text-[10px] font-extrabold flex-shrink-0">
+                  {farmerProfile.district}, {farmerProfile.state}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#baeed9] font-medium truncate mt-0.5">
+                {farmerProfile.landSizeAcres} Acres • {farmerProfile.soilType.split('(')[0].trim()} • {farmerProfile.agroClimaticZone.split('(')[0].trim()}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+            {farmerProfile.primaryCrops.length > 0 && !cropHint && (
+              <button
+                type="button"
+                onClick={() => {
+                  const firstCrop = farmerProfile.primaryCrops[0].split('(')[0].trim();
+                  setCropHint(firstCrop);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[11px] font-bold border border-white/20 transition-all flex items-center gap-1 active:scale-95"
+                title="Auto-fill your registered primary crop into diagnosis"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#a0f399]" />
+                <span>Auto-fill {farmerProfile.primaryCrops[0].split('(')[0].trim()}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onOpenProfileModal}
+              className="px-2.5 py-1.5 rounded-xl bg-[#a0f399] hover:bg-[#8ee587] text-[#003629] text-[11px] font-extrabold transition-all active:scale-95 shadow-xs"
+            >
+              Farm Settings
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Scanner Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-start">
         {/* Left Side: Upload & Camera Viewport */}
@@ -332,6 +384,10 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               {samples.map((sample) => {
                 const isSelected = selectedSample?.id === sample.id;
                 const isHealthy = sample.category === 'Healthy';
+                const isFarmerCrop = farmerProfile?.primaryCrops.some(c => 
+                  c.toLowerCase().includes(sample.cropName.toLowerCase()) || 
+                  sample.cropName.toLowerCase().includes(c.split('(')[0].trim().toLowerCase())
+                );
 
                 return (
                   <button
@@ -341,7 +397,9 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                     className={`text-left p-2.5 sm:p-3 rounded-xl border transition-all flex items-center gap-2.5 ${
                       isSelected
                         ? 'border-[#1b6d24] bg-[#eef5ef] ring-2 ring-[#a0f399]'
-                        : 'border-[#dde4de] hover:border-[#1b4d3e] hover:bg-[#f4fbf4]'
+                        : isFarmerCrop
+                          ? 'border-emerald-300 bg-emerald-50/40 hover:bg-emerald-50'
+                          : 'border-[#dde4de] hover:border-[#1b4d3e] hover:bg-[#f4fbf4]'
                     }`}
                   >
                     <img
@@ -351,9 +409,16 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <span className="text-xs font-bold text-[#003629] truncate">
-                          {sample.cropName}
-                        </span>
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-xs font-bold text-[#003629] truncate">
+                            {sample.cropName}
+                          </span>
+                          {isFarmerCrop && (
+                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex-shrink-0">
+                              Your Crop
+                            </span>
+                          )}
+                        </div>
                         <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full ${
                           isHealthy
                             ? 'bg-[#a0f399] text-[#003629]'

@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Calculator, Info } from 'lucide-react';
-import { SupportedLanguage } from '../types/farm';
+import { SupportedLanguage, FarmerProfile } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 
 interface CalculatorPageProps {
   currentLang: SupportedLanguage;
+  farmerProfile?: FarmerProfile | null;
 }
 
-export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang }) => {
+export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang, farmerProfile }) => {
   const t = TRANSLATIONS[currentLang];
 
   const [tankSize, setTankSize] = useState<number>(16);
-  const [plotAcres, setPlotAcres] = useState<number>(1);
+  const [plotAcres, setPlotAcres] = useState<number>(farmerProfile?.landSizeAcres || 1);
   const [dosageRate, setDosageRate] = useState<number>(2.5); // g/ml per liter
   const [productType, setProductType] = useState<'powder' | 'liquid'>('powder');
 
@@ -120,8 +121,13 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang }) =
                 max="100"
                 value={plotAcres}
                 onChange={(e) => setPlotAcres(Math.max(0.25, parseFloat(e.target.value) || 1))}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4]"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4] font-bold"
               />
+              {farmerProfile && (
+                <p className="text-[10px] text-[#1b6d24] font-semibold mt-1">
+                  ✓ Calibrated to your registered farm in {farmerProfile.displayName} ({farmerProfile.landSizeAcres} Acres)
+                </p>
+              )}
             </div>
           </div>
         </div>
