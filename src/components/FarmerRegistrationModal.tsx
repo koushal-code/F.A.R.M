@@ -28,6 +28,7 @@ import {
   DEFAULT_FARMER_PROFILE,
   AUTH_TRANSLATIONS 
 } from '../data/registrationData';
+import { FARM_LOGO_SRC } from '../constants/assets';
 import { reverseGeocodeCoords, inferAgroClimaticZone } from '../services/gpsService';
 
 interface FarmerRegistrationModalProps {
@@ -38,6 +39,7 @@ interface FarmerRegistrationModalProps {
   currentLang: SupportedLanguage;
   onLanguageChange: (lang: SupportedLanguage) => void;
   isInitialOnboarding?: boolean;
+  onSwitchFarmer?: () => void;
 }
 
 export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = ({
@@ -47,7 +49,8 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
   onSaveProfile,
   currentLang,
   onLanguageChange,
-  isInitialOnboarding = false
+  isInitialOnboarding = false,
+  onSwitchFarmer
 }) => {
   const t = AUTH_TRANSLATIONS[currentLang] || AUTH_TRANSLATIONS.en;
 
@@ -68,7 +71,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
   );
   const [soilType, setSoilType] = useState<string>(farmerProfile?.soilType || SOIL_OPTIONS[0]);
   const [irrigation, setIrrigation] = useState<string>(farmerProfile?.irrigationType || IRRIGATION_OPTIONS[0]);
-  const [landAcres, setLandAcres] = useState<number>(farmerProfile?.landSizeAcres || 3.5);
+  const [landAcres, setLandAcres] = useState<number | string>(farmerProfile?.landSizeAcres || 3.5);
   const [selectedCrops, setSelectedCrops] = useState<string[]>(
     farmerProfile?.primaryCrops || ['Cotton (કપાસ / పత్తి)', 'Groundnut / Peanut (મગફળી / వేరుశనગ)']
   );
@@ -186,14 +189,17 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
   const handleSaveRegistration = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    const farmerName = name.trim() || 'Kisan Farmer';
+    const farmerName = name.trim() || 'Farmer';
     const farmerPhone = phone.trim() || '9876543210';
     const farmerVillage = village.trim() || selectedDistrict;
 
     const displayName = `${farmerVillage}, ${selectedDistrict}, ${selectedState}`;
 
+    const parsedAcres = parseFloat(String(landAcres));
+    const effectiveAcres = (!isNaN(parsedAcres) && parsedAcres > 0) ? parsedAcres : 1;
+
     const newProfile: FarmerProfile = {
-      id: farmerProfile?.id || `kisan-${Date.now()}`,
+      id: farmerProfile?.id || `farmer-${Date.now()}`,
       name: farmerName,
       phone: farmerPhone,
       state: selectedState,
@@ -206,7 +212,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
       agroClimaticZone: agroZone,
       soilType,
       irrigationType: irrigation,
-      landSizeAcres: Number(landAcres) || 1,
+      landSizeAcres: effectiveAcres,
       primaryCrops: selectedCrops.length > 0 ? selectedCrops : ['Cotton (કપાસ / పత్తి)'],
       preferredLanguage: currentLang,
       registeredAt: farmerProfile?.registeredAt || new Date().toISOString(),
@@ -250,10 +256,10 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
       onClose();
     } else {
       // Create registered profile for this phone
-      const matchedName = 'Kisan ' + loginPhone.slice(-4);
+      const matchedName = 'Farmer ' + loginPhone.slice(-4);
       const newProfile: FarmerProfile = {
         ...DEFAULT_FARMER_PROFILE,
-        id: `kisan-${Date.now()}`,
+        id: `farmer-${Date.now()}`,
         name: matchedName,
         phone: loginPhone.trim(),
         preferredLanguage: currentLang,
@@ -283,12 +289,14 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
           )}
 
           <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-xl bg-[#a0f399] text-[#003629] flex items-center justify-center font-black shadow-sm">
-              <Sprout className="w-5 h-5 stroke-[2.5]" />
-            </div>
+            <img 
+              src={FARM_LOGO_SRC} 
+              alt="FARM" 
+              className="w-10 h-10 rounded-xl object-contain bg-white shadow-sm border border-[#a0f399]/40 p-0.5 flex-shrink-0"
+            />
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#a0f399]">
-                F.A.R.M. • KISAN PORTAL
+                FARM • FARMER PROFILE
               </span>
               <h2 className="font-display text-lg sm:text-2xl font-black text-white leading-tight">
                 {authMode === 'edit' ? t.editProfileTitle : t.registrationTitle}
@@ -300,35 +308,24 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
             {t.registrationSubtitle}
           </p>
 
-          {/* Quick Language Switcher Bar inside Modal */}
-          <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-2 flex-wrap">
+          {/* Quick Language Dropdown inside Modal */}
+          <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
             <span className="text-[11px] font-bold text-[#baeed9] flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5 text-[#a0f399]" />
               {t.languageSelectLabel}:
             </span>
-            <div className="flex items-center gap-1 flex-wrap">
-              {[
-                { code: 'gu', label: 'ગુજરાતી' },
-                { code: 'hi', label: 'हिन्दी' },
-                { code: 'te', label: 'తెలుగు' },
-                { code: 'kn', label: 'ಕನ್ನಡ' },
-                { code: 'ta', label: 'தமிழ்' },
-                { code: 'en', label: 'English' }
-              ].map((lang) => (
-                <button
-                  key={lang.code}
-                  type="button"
-                  onClick={() => onLanguageChange(lang.code as SupportedLanguage)}
-                  className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                    currentLang === lang.code
-                      ? 'bg-[#a0f399] text-[#003629] shadow-xs scale-105'
-                      : 'bg-white/10 hover:bg-white/20 text-white'
-                  }`}
-                >
-                  {lang.label}
-                </button>
-              ))}
-            </div>
+            <select
+              value={currentLang}
+              onChange={(e) => onLanguageChange(e.target.value as SupportedLanguage)}
+              className="px-2.5 py-1.5 rounded-xl bg-white/15 text-white text-xs font-bold border border-white/20 focus:outline-none focus:bg-white/25 cursor-pointer"
+            >
+              <option value="gu" className="text-black">ગુજરાતી (Gujarati)</option>
+              <option value="hi" className="text-black">हिन्दी (Hindi)</option>
+              <option value="te" className="text-black">తెలుగు (Telugu)</option>
+              <option value="kn" className="text-black">ಕನ್ನಡ (Kannada)</option>
+              <option value="ta" className="text-black">தமிழ் (Tamil)</option>
+              <option value="en" className="text-black">English (EN)</option>
+            </select>
           </div>
         </div>
 
@@ -363,7 +360,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
 
           {authMode === 'login' ? (
             /* Login Form */
-            <form onSubmit={handleLoginSubmit} className="space-y-5 py-4">
+            <form onSubmit={handleLoginSubmit} noValidate className="space-y-5 py-4">
               <div className="bg-white p-5 rounded-2xl border border-[#c0c9c3] shadow-xs space-y-4">
                 <div className="flex items-center gap-2 text-[#003629]">
                   <Phone className="w-5 h-5 text-[#1b6d24]" />
@@ -447,7 +444,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
             </form>
           ) : (
             /* Registration & Field Setup Form */
-            <form onSubmit={handleSaveRegistration} className="space-y-6">
+            <form onSubmit={handleSaveRegistration} noValidate className="space-y-6">
 
               {/* Demo Helper Button */}
               <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 rounded-2xl">
@@ -623,38 +620,80 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
                   </h3>
                 </div>
 
-                {/* Land Size in Acres with Presets */}
-                <div>
-                  <label className="block text-xs font-bold text-[#404945] mb-1.5">
-                    {t.landSizeLabel} ({t.acresUnit}):
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0.2"
-                      max="1000"
-                      value={landAcres}
-                      onChange={(e) => setLandAcres(parseFloat(e.target.value) || 1)}
-                      className="w-28 px-3.5 py-2.5 rounded-xl bg-[#f4fbf4] border border-[#c0c9c3] text-[#161d19] font-black text-sm focus:outline-none focus:ring-2 focus:ring-[#1b6d24]"
-                      required
-                    />
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {[1, 2, 3.5, 5, 10].map((size) => (
-                        <button
-                          key={size}
-                          type="button"
-                          onClick={() => setLandAcres(size)}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs font-extrabold border transition-colors ${
-                            landAcres === size
-                              ? 'bg-[#003629] text-white border-[#003629]'
-                              : 'bg-white text-[#404945] border-[#c0c9c3] hover:bg-[#eef5ef]'
-                          }`}
-                        >
-                          {size} {t.acresUnit}
-                        </button>
-                      ))}
+                {/* Land Size in Acres with Stepper & Presets */}
+                <div className="bg-[#f4fbf4] p-3.5 rounded-2xl border border-[#c0c9c3]">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-bold text-[#404945]">
+                      {t.landSizeLabel} ({t.acresUnit}):
+                    </label>
+                    <span className="text-xs font-black text-[#003629] bg-[#a0f399] px-2 py-0.5 rounded-md">
+                      {landAcres || '0'} {t.acresUnit}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseFloat(String(landAcres)) || 1;
+                        const nextVal = Math.max(0.1, Number((current - 0.5).toFixed(2)));
+                        setLandAcres(nextVal);
+                      }}
+                      className="w-10 h-10 rounded-xl bg-white hover:bg-[#eef5ef] text-[#003629] font-black text-lg border border-[#c0c9c3] flex items-center justify-center active:scale-95 transition-all shadow-xs"
+                      title="Decrease by 0.5 Acre"
+                    >
+                      -
+                    </button>
+
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        step="any"
+                        min="0.01"
+                        value={landAcres}
+                        onChange={(e) => {
+                          setLandAcres(e.target.value);
+                        }}
+                        placeholder="e.g. 4.5, 4.7, 5"
+                        className="w-full px-3.5 py-2.5 pr-14 rounded-xl bg-white border border-[#c0c9c3] text-[#161d19] font-black text-sm focus:outline-none focus:ring-2 focus:ring-[#1b6d24]"
+                        required
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#707974] pointer-events-none">
+                        Acres
+                      </span>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = parseFloat(String(landAcres)) || 1;
+                        const nextVal = Number((current + 0.5).toFixed(2));
+                        setLandAcres(nextVal);
+                      }}
+                      className="w-10 h-10 rounded-xl bg-white hover:bg-[#eef5ef] text-[#003629] font-black text-lg border border-[#c0c9c3] flex items-center justify-center active:scale-95 transition-all shadow-xs"
+                      title="Increase by 0.5 Acre"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Quick Preset Buttons */}
+                  <div className="flex items-center gap-1.5 flex-wrap pt-2.5">
+                    <span className="text-[10px] font-bold text-[#707974] uppercase mr-0.5">Presets:</span>
+                    {[0.5, 1, 2, 3, 4.5, 5, 10, 15, 25].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setLandAcres(preset)}
+                        className={`px-2.5 py-1 rounded-xl text-xs font-extrabold border transition-all active:scale-95 ${
+                          Number(landAcres) === preset
+                            ? 'bg-[#003629] text-[#a0f399] border-[#003629] shadow-xs'
+                            : 'bg-white text-[#404945] border-[#c0c9c3] hover:bg-[#eef5ef]'
+                        }`}
+                      >
+                        {preset} ac
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -721,7 +760,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
                 </div>
               </div>
 
-              {/* 4. Live Kisan ID Pass Preview */}
+              {/* 4. Live Farmer Profile ID Pass Preview */}
               <div className="bg-gradient-to-br from-[#003629] to-[#1b4d3e] text-white p-4 sm:p-5 rounded-2xl border border-[#a0f399]/40 shadow-md">
                 <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
                   <div className="flex items-center gap-2">
@@ -756,7 +795,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
                   </div>
 
                   <div className="w-12 h-12 rounded-xl bg-white/10 border border-[#a0f399]/30 flex flex-col items-center justify-center text-center p-1 flex-shrink-0">
-                    <Sprout className="w-5 h-5 text-[#a0f399]" />
+                    <img src={FARM_LOGO_SRC} alt="FARM" className="w-7 h-7 rounded-lg object-contain bg-white p-0.5" />
                     <span className="text-[8px] font-extrabold text-[#a0f399] uppercase leading-tight mt-0.5">
                       ACTIVE
                     </span>
@@ -783,13 +822,28 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
                     {t.skipGuestBtn}
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl border border-[#c0c9c3] text-xs font-bold text-[#404945] hover:bg-[#eef5ef]"
-                  >
-                    Cancel
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2.5 rounded-xl border border-[#c0c9c3] text-xs font-bold text-[#404945] hover:bg-[#eef5ef]"
+                    >
+                      Cancel
+                    </button>
+                    {onSwitchFarmer && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onSwitchFarmer();
+                        }}
+                        className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors flex items-center gap-1.5"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>{t.switchFarmer}</span>
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 <button

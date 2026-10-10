@@ -129,7 +129,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
         <div className="bg-gradient-to-r from-[#003629] via-[#004838] to-[#1b4d3e] text-white p-3.5 sm:p-4 rounded-2xl border border-[#a0f399]/40 shadow-sm flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-sm shadow-xs flex-shrink-0">
-              {farmerProfile.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
+              {farmerProfile.name ? farmerProfile.name.charAt(0).toUpperCase() : 'F'}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -166,7 +166,7 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               onClick={onOpenProfileModal}
               className="px-2.5 py-1.5 rounded-xl bg-[#a0f399] hover:bg-[#8ee587] text-[#003629] text-[11px] font-extrabold transition-all active:scale-95 shadow-xs"
             >
-              Farm Settings
+              Farmer Profile
             </button>
           </div>
         </div>

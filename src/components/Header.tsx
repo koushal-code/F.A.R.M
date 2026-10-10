@@ -3,6 +3,7 @@ import { Sprout, Sun, CloudRain, Wind, Globe, History, Calculator, Sparkles } fr
 import { SupportedLanguage } from '../types/farm';
 import { TRANSLATIONS } from '../data/translations';
 import { RealtimeWeather } from '../services/weatherService';
+import { FARM_LOGO_SRC } from '../constants/assets';
 
 interface HeaderProps {
   currentLang: SupportedLanguage;
@@ -65,9 +66,11 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main navigation & brand identity */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#003629] text-[#a0f399] flex items-center justify-center shadow-md border border-[#1b4d3e]">
-            <Sprout className="w-6 h-6 stroke-[2.5]" />
-          </div>
+          <img 
+            src={FARM_LOGO_SRC} 
+            alt="FARM Logo" 
+            className="w-10 h-10 rounded-xl object-contain shadow-md border border-[#1b4d3e] bg-white p-0.5"
+          />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-display text-2xl font-black tracking-tight text-[#003629] dark:text-white">

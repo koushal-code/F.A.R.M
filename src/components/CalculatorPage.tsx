@@ -116,11 +116,11 @@ export const CalculatorPage: React.FC<CalculatorPageProps> = ({ currentLang, far
               </label>
               <input
                 type="number"
-                step="0.25"
-                min="0.25"
-                max="100"
+                step="any"
+                min="0.01"
+                max="10000"
                 value={plotAcres}
-                onChange={(e) => setPlotAcres(Math.max(0.25, parseFloat(e.target.value) || 1))}
+                onChange={(e) => setPlotAcres(parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 text-xs rounded-lg border border-[#c0c9c3] focus:outline-none focus:border-[#1b6d24] bg-[#f4fbf4] font-bold"
               />
               {farmerProfile && (
