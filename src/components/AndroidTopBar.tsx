@@ -340,21 +340,21 @@ export const AndroidTopBar: React.FC<AndroidTopBarProps> = ({
 
           {/* Action Controls: Farmer Profile, Live GPS, Language */}
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            {/* Farmer Profile Button */}
+            {/* Farmer Profile / Login Button */}
             <button
               onClick={onOpenProfileModal}
-              title={farmerProfile ? `Farmer: ${farmerProfile.name} (${farmerProfile.displayName})` : 'Farmer Registration & Profile'}
+              title={farmerProfile ? `Farmer: ${farmerProfile.name} (${farmerProfile.displayName})` : 'Farmer Registration & Login Profile'}
               className="h-9 sm:h-10 px-2 sm:px-2.5 rounded-xl bg-[#1b4d3e] hover:bg-[#256653] text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 transition-all"
             >
               <div className="w-5 h-5 rounded-lg bg-[#a0f399] text-[#003629] flex items-center justify-center font-black text-[10px] flex-shrink-0">
                 {farmerProfile?.name ? farmerProfile.name.charAt(0).toUpperCase() : 'K'}
               </div>
-              <div className="hidden xs:flex flex-col text-left leading-none max-w-[80px] sm:max-w-[110px]">
+              <div className="flex flex-col text-left leading-none max-w-[65px] xs:max-w-[80px] sm:max-w-[110px]">
                 <span className="text-[11px] font-extrabold truncate text-white">
-                  {farmerProfile?.name || 'Kisan'}
+                  {farmerProfile?.isRegistered ? (farmerProfile.name.split(' ')[0] || 'Kisan') : 'Login'}
                 </span>
                 <span className="text-[9px] text-[#a0f399] font-bold truncate">
-                  {farmerProfile?.district || 'Register'}
+                  {farmerProfile?.district || 'Portal'}
                 </span>
               </div>
             </button>

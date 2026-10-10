@@ -158,6 +158,24 @@ export interface TranslationDictionary {
   totalChemicalRequired: string;
   mixingSafetyTip: string;
   readyStatus: string;
+  // Google Maps Grounding & Agricultural Extension Centers
+  tabNearbyAgri: string;
+  nearbyCentersTitle: string;
+  nearbyCentersSubtitle: string;
+  groundedByGoogleMaps: string;
+  openInGoogleMaps: string;
+  viewOnMap: string;
+  findNearbyInputs: string;
+  searchAgriCenters: string;
+  filterAll: string;
+  filterKvk: string;
+  filterDealers: string;
+  filterFertilizer: string;
+  filterSoilLab: string;
+  getDirections: string;
+  verifiedByMaps: string;
+  noPlacesFound: string;
+  refreshLocation: string;
 }
 
 export const TRANSLATIONS: Record<SupportedLanguage, TranslationDictionary> = {

@@ -395,16 +395,54 @@ export const ScannerHero: React.FC<ScannerHeroProps> = ({
               <ChevronDown className="w-3 h-3 text-[#707974] absolute right-2 top-2.5 pointer-events-none" />
             </div>
 
-            {/* GPS Locate Button */}
+            {/* Modern Google Maps Location Button */}
             <button
               type="button"
               onClick={handleDetectGps}
               disabled={isLocatingGps || isLoadingWeather}
-              title="Detect live GPS coordinates and local weather"
-              className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-[#003629] text-white hover:bg-[#1b4d3e] text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 shadow-2xs disabled:opacity-50"
+              title="Detect live GPS coordinates and local weather via Google Maps Location"
+              className="group relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-xl bg-white hover:bg-[#f8fafd] text-[#3c4043] hover:text-[#1a73e8] border border-[#dadce0] hover:border-[#4285f4] text-[11px] font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs hover:shadow-sm disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-[#a0f399] ${isLocatingGps || isLoadingWeather ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">GPS</span>
+              {/* Google Maps Location Icon */}
+              <div className="relative flex items-center justify-center w-4 h-4 flex-shrink-0">
+                {isLocatingGps || isLoadingWeather ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-[#1a73e8] border-t-transparent animate-spin" />
+                ) : (
+                  <svg
+                    className="w-4 h-4 transition-transform group-hover:scale-110"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    {/* Google Maps Pin Body */}
+                    <path
+                      d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2Z"
+                      fill="#EA4335"
+                    />
+                    {/* Left slice - Google Blue */}
+                    <path
+                      d="M12 2C8.13 2 5 5.13 5 9C5 11.23 6.27 14.15 8.23 17.22L12 9V2Z"
+                      fill="#4285F4"
+                    />
+                    {/* Right slice - Google Yellow */}
+                    <path
+                      d="M12 2V9L15.77 17.22C17.73 14.15 19 11.23 19 9C19 5.13 15.87 2 12 2Z"
+                      fill="#FBBC04"
+                    />
+                    {/* Bottom fold - Google Green */}
+                    <path
+                      d="M12 22C12 22 8.23 17.22 8.23 17.22L12 12L15.77 17.22C15.77 17.22 12 22 12 22Z"
+                      fill="#34A853"
+                    />
+                    {/* Center white circle with Google blue locator dot */}
+                    <circle cx="12" cy="9" r="3" fill="#FFFFFF" />
+                    <circle cx="12" cy="9" r="1.6" fill="#1A73E8" />
+                  </svg>
+                )}
+              </div>
+              <span className="hidden sm:inline font-bold">
+                {isLocatingGps ? 'Locating...' : 'Locate'}
+              </span>
             </button>
 
             {/* Toggle collapse/expand */}

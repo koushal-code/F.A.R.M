@@ -277,6 +277,8 @@ export default function App() {
         onToggleHighContrast={handleToggleHighContrast}
         onOpenFlutterExport={() => setIsFlutterModalOpen(true)}
         onOpenAiSetup={() => setIsAiModalOpen(true)}
+        farmerProfile={farmerProfile}
+        onOpenProfileModal={() => setIsRegistrationModalOpen(true)}
       />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-6 py-3.5 sm:py-6 pb-28 sm:pb-32 space-y-4 sm:space-y-6">
@@ -344,7 +346,7 @@ export default function App() {
         )}
 
         {activeTab === 'calculator' && (
-          <CalculatorPage currentLang={currentLang} />
+          <CalculatorPage currentLang={currentLang} farmerProfile={farmerProfile} />
         )}
 
         {activeTab === 'guide' && (
@@ -398,6 +400,16 @@ export default function App() {
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
         currentLang={currentLang}
+      />
+
+      <FarmerRegistrationModal
+        isOpen={isRegistrationModalOpen}
+        onClose={() => setIsRegistrationModalOpen(false)}
+        farmerProfile={farmerProfile}
+        onSaveProfile={handleSaveProfile}
+        currentLang={currentLang}
+        onLanguageChange={handleLanguageChange}
+        isInitialOnboarding={isInitialOnboarding}
       />
     </div>
   );

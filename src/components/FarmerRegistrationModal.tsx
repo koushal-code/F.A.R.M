@@ -118,7 +118,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
   // Live GPS one-click detection
   const handleDetectGPS = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      setGpsSuccessMsg('Geolocation is not supported by your browser.');
       return;
     }
 
@@ -167,7 +167,7 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
       },
       (err) => {
         setIsDetectingGps(false);
-        alert(`Could not acquire GPS: ${err.message}. Please select your State & District manually.`);
+        setGpsSuccessMsg(`Could not acquire GPS: ${err.message}. Please select your State & District manually.`);
       },
       { enableHighAccuracy: true, timeout: 12000 }
     );
@@ -272,15 +272,14 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
         
         {/* Header Banner */}
         <div className="bg-[#003629] text-white p-5 sm:p-6 border-b border-[#1b4d3e] relative flex-shrink-0">
-          {!isInitialOnboarding && (
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            aria-label="Close"
+            title="Close / Explore as Guest"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
           <div className="flex items-center gap-2.5 mb-2">
             <div className="w-9 h-9 rounded-xl bg-[#a0f399] text-[#003629] flex items-center justify-center font-black shadow-sm">
@@ -291,13 +290,13 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
                 F.A.R.M. • KISAN PORTAL
               </span>
               <h2 className="font-display text-lg sm:text-2xl font-black text-white leading-tight">
-                {authMode === 'edit' ? t.editProfileTitle : t.registrationTitle}
+                {authMode === 'edit' ? t.editProfileTitle : authMode === 'login' ? t.loginTab : t.registrationTitle}
               </h2>
             </div>
           </div>
 
           <p className="text-xs sm:text-sm text-[#baeed9] leading-relaxed max-w-xl">
-            {t.registrationSubtitle}
+            {authMode === 'login' ? t.enterMobileToLogin : t.registrationSubtitle}
           </p>
 
           {/* Quick Language Switcher Bar inside Modal */}
@@ -332,22 +331,24 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
           </div>
         </div>
 
-        {/* Tab Toggle for Register vs Login */}
-        {!isInitialOnboarding && (
-          <div className="bg-white border-b border-[#dde4de] px-6 py-2 flex items-center gap-2 flex-shrink-0">
+        {/* Tab Toggle for Register vs Login (Always visible for easy switching) */}
+        <div className="bg-white border-b border-[#dde4de] px-4 sm:px-6 py-2 flex items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setAuthMode('register')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-colors ${
                 authMode === 'register' || authMode === 'edit'
                   ? 'bg-[#1b6d24] text-white shadow-xs'
                   : 'text-[#404945] hover:bg-[#eef5ef]'
               }`}
             >
-              {authMode === 'edit' ? t.myProfile : t.registerTab}
+              {farmerProfile?.isRegistered ? t.myProfile : t.registerTab}
             </button>
             <button
+              type="button"
               onClick={() => setAuthMode('login')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold transition-colors ${
                 authMode === 'login'
                   ? 'bg-[#1b6d24] text-white shadow-xs'
                   : 'text-[#404945] hover:bg-[#eef5ef]'
@@ -356,7 +357,15 @@ export const FarmerRegistrationModal: React.FC<FarmerRegistrationModalProps> = (
               {t.loginTab}
             </button>
           </div>
-        )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[11px] font-bold text-[#707974] hover:text-[#003629] px-2 py-1 rounded-lg hover:bg-[#eef5ef]"
+          >
+            {isInitialOnboarding ? 'Skip for now →' : 'Cancel'}
+          </button>
+        </div>
 
         {/* Modal Scrollable Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">

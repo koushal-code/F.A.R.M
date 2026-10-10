@@ -274,22 +274,22 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
                 className="p-3.5 sm:p-4 cursor-pointer flex items-start justify-between gap-3 select-none"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#e8f0e9] text-[#1b4d3e] uppercase tracking-wider">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-[#e8f0e9] text-[#1b4d3e] uppercase tracking-wider flex-shrink-0">
                       {tip.categoryLabel[currentLang] || tip.categoryLabel.en}
                     </span>
-                    <span className="text-[11px] text-[#707974] flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#1b6d24]" />
-                      <span className="truncate">{tip.bestTiming[currentLang] || tip.bestTiming.en}</span>
+                    <span className="text-[11px] text-[#707974] flex items-center gap-1 flex-shrink-0">
+                      <Clock className="w-3 h-3 text-[#1b6d24] flex-shrink-0" />
+                      <span>{tip.bestTiming[currentLang] || tip.bestTiming.en}</span>
                     </span>
                   </div>
 
-                  <h4 className="font-display text-xs sm:text-sm font-bold text-[#003629] leading-snug">
+                  <h4 className="font-display text-sm sm:text-base font-bold text-[#003629] leading-normal break-words">
                     {tip.title[currentLang] || tip.title.en}
                   </h4>
 
                   {!isExpanded && (
-                    <p className="text-xs text-[#56605b] mt-1 line-clamp-1 leading-relaxed">
+                    <p className="text-xs text-[#56605b] mt-1.5 line-clamp-2 leading-relaxed break-words">
                       {tip.shortDesc[currentLang] || tip.shortDesc.en}
                     </p>
                   )}
@@ -323,38 +323,38 @@ export const QuickFarmingTips: React.FC<QuickFarmingTipsProps> = ({ currentLang 
               {isExpanded && (
                 <div className="px-3.5 sm:px-4 pb-4 pt-1 space-y-3 border-t border-[#dde4de]/80 text-xs">
                   {/* Summary */}
-                  <p className="text-xs text-[#2a342e] leading-relaxed">
+                  <p className="text-xs text-[#2a342e] leading-relaxed break-words">
                     {tip.shortDesc[currentLang] || tip.shortDesc.en}
                   </p>
 
                   {/* Core Actionable Recommendation */}
-                  <div className="p-3 rounded-xl bg-[#eef5ef] border border-[#a0f399] space-y-1">
+                  <div className="p-3 rounded-xl bg-[#eef5ef] border border-[#a0f399] space-y-1.5">
                     <div className="flex items-center gap-1.5 font-bold text-[#1b6d24]">
                       <Sprout className="w-3.5 h-3.5 flex-shrink-0 text-[#1b6d24]" />
                       <span>{t.fieldRecommendationLabel || 'Field Recommendation'}</span>
                     </div>
-                    <p className="text-xs text-[#003629] font-medium leading-relaxed">
+                    <p className="text-xs text-[#003629] font-medium leading-relaxed break-words">
                       {tip.keyRecommendation[currentLang] || tip.keyRecommendation.en}
                     </p>
                   </div>
 
                   {/* Do's and Don'ts */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-2">
+                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-2 min-w-0">
                       <CheckCircle2 className="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5" />
-                      <div>
+                      <div className="min-w-0 flex-1 break-words">
                         <strong className="text-emerald-900 block font-bold text-[11px] mb-0.5">{t.doLabel || 'DO:'}</strong>
-                        <span className="text-emerald-950 text-[11px] leading-relaxed">
+                        <span className="text-emerald-950 text-[11px] leading-relaxed block">
                           {tip.dosAndDonts.dos[currentLang] || tip.dosAndDonts.dos.en}
                         </span>
                       </div>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-red-50/70 border border-red-200 flex items-start gap-2">
+                    <div className="p-2.5 rounded-xl bg-red-50/70 border border-red-200 flex items-start gap-2 min-w-0">
                       <XCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                      <div>
+                      <div className="min-w-0 flex-1 break-words">
                         <strong className="text-red-900 block font-bold text-[11px] mb-0.5">{t.dontLabel || "DON'T:"}</strong>
-                        <span className="text-red-950 text-[11px] leading-relaxed">
+                        <span className="text-red-950 text-[11px] leading-relaxed block">
                           {tip.dosAndDonts.donts[currentLang] || tip.dosAndDonts.donts.en}
                         </span>
                       </div>
