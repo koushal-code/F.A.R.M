@@ -857,24 +857,6 @@ export const RegistrationPage: React.FC<RegistrationPageProps> = ({
                   </div>
                 </div>
 
-                {/* Farmer Profile Pass Preview */}
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-[#003629] to-[#1b4d3e] text-white flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] font-extrabold uppercase text-[#a0f399]">
-                      Farmer Profile Preview
-                    </div>
-                    <div className="font-display font-black text-sm text-white">
-                      {name || 'Ramesh Patel'}
-                    </div>
-                    <div className="text-[11px] text-[#baeed9]">
-                      {village || selectedDistrict}, {selectedDistrict} • {landAcres} Acres
-                    </div>
-                  </div>
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#a0f399] text-[#003629] font-black uppercase">
-                    ACTIVE
-                  </span>
-                </div>
-
                 {/* Registration Button */}
                 <button
                   type="submit"
