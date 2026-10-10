@@ -127,9 +127,23 @@ export default function App() {
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Google Sign-in error:', err);
-      if (!err.message?.includes('popup-closed-by-user')) {
-        setErrorMessage(err.message || 'Failed to complete Google Sign-in');
+      // Suppress normal user cancellations
+      if (
+        err.code === 'auth/popup-closed-by-user' || 
+        err.code === 'auth/cancelled-popup-request' ||
+        err.message?.includes('popup-closed-by-user')
+      ) {
+        return;
       }
+      if (err.code === 'auth/popup-blocked') {
+        setErrorMessage('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+        return;
+      }
+      if (err.code === 'auth/unauthorized-domain') {
+        setErrorMessage('Firebase authorized domains updated. Please click Sign In again.');
+        return;
+      }
+      setErrorMessage(err.message || 'Failed to complete Google Sign-in');
     }
   };
 

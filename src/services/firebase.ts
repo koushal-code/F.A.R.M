@@ -89,15 +89,26 @@ export async function signInWithGoogle(): Promise<User> {
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 
-  // Sync user profile to Firestore
+  // Sync user profile to Firestore adhering to security rules
   try {
     const userDocRef = doc(db, 'users', user.uid);
-    await setDoc(userDocRef, {
-      id: user.uid,
-      email: user.email || '',
-      displayName: user.displayName || 'Farmer',
-      createdAt: new Date().toISOString()
-    }, { merge: true });
+    const existingSnap = await getDoc(userDocRef);
+    if (!existingSnap.exists()) {
+      await setDoc(userDocRef, {
+        id: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || 'Farmer',
+        createdAt: new Date().toISOString()
+      });
+    } else {
+      const existingData = existingSnap.data();
+      await setDoc(userDocRef, {
+        id: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || 'Farmer',
+        createdAt: existingData.createdAt || new Date().toISOString()
+      }, { merge: true });
+    }
   } catch (err) {
     console.warn('Failed to save user profile doc:', err);
   }
